@@ -1,0 +1,261 @@
+.homeRoot {
+  width: 100%;
+  position: relative;
+  z-index: 1;
+}
+
+.homeRoot::before {
+  content: "";
+  position: absolute;
+  inset: 1rem 8% auto;
+  height: 20rem;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 20% 40%, rgba(124, 225, 255, 0.18), transparent 36%),
+    radial-gradient(circle at 70% 30%, rgba(82, 209, 255, 0.16), transparent 32%);
+  filter: blur(64px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+  gap: clamp(1.25rem, 3vw, 2rem);
+  width: 100%;
+  padding-top: clamp(2rem, 8vh, 4rem);
+}
+
+.heroBackdrop {
+  position: absolute;
+  inset: 5% 10% auto 0;
+  height: 62%;
+  background:
+    radial-gradient(circle at center, rgba(157, 219, 221, 0.16), transparent 58%),
+    radial-gradient(circle at 22% 30%, rgba(87, 173, 197, 0.2), transparent 30%),
+    linear-gradient(90deg, rgba(46, 104, 151, 0.14), transparent 72%);
+  filter: blur(72px);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.heroCopy,
+.heroPanel,
+.featureCard,
+.statCard,
+.topologyCard {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--glass-edge);
+  background:
+    linear-gradient(145deg, var(--glass-highlight), transparent 42%),
+    linear-gradient(180deg, var(--glass-fill), rgba(9, 19, 33, 0.28));
+  box-shadow:
+    var(--shadow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(22px) saturate(1.2);
+  -webkit-backdrop-filter: blur(22px) saturate(1.2);
+}
+
+.heroCopy::before,
+.heroPanel::before,
+.featureCard::before,
+.statCard::before,
+.topologyCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 24%);
+}
+
+.heroCopy {
+  padding: clamp(1.4rem, 3vw, 2.4rem);
+  border-radius: 1.72rem;
+}
+
+.kicker {
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #9ddbdd;
+  font-weight: 700;
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: var(--type-xl);
+  line-height: 0.96;
+  letter-spacing: -0.05em;
+}
+
+.heroText {
+  max-width: 40rem;
+  font-size: var(--type-sm);
+  line-height: 1.7;
+}
+
+.heroActions {
+  align-items: center;
+}
+
+.heroStats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.statCard {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 1rem 1.1rem;
+  border-radius: 1.18rem;
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.statCard:hover,
+.featureCard:hover,
+.topologyCard:hover {
+  transform: translateY(-2px);
+  border-color: var(--card-border-hover);
+  box-shadow:
+    0 28px 62px rgba(2, 8, 23, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.14);
+}
+
+.statValue {
+  font-size: var(--type-md);
+  font-weight: 800;
+  color: #f3fbff;
+}
+
+.statLabel {
+  font-size: var(--type-sm);
+  color: rgba(238, 244, 251, 0.74);
+}
+
+.heroPanel {
+  position: relative;
+  border-radius: 1.72rem;
+  padding: 1.35rem;
+  overflow: hidden;
+}
+
+.panelGlow {
+  position: absolute;
+  inset: -20% auto auto -10%;
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(circle at center, rgba(87, 173, 197, 0.18), transparent 66%);
+  filter: blur(30px);
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.panelBadge,
+.panelHost,
+.featureEyebrow,
+.topologyLabel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.panelBadge,
+.featureEyebrow {
+  background: rgba(87, 173, 197, 0.14);
+  color: #9ddbdd;
+}
+
+.panelHost,
+.topologyLabel {
+  background: rgba(46, 104, 151, 0.14);
+  color: #9ccce0;
+}
+
+.topologyGrid,
+.featureGrid {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.topologyCard,
+.featureCard {
+  border-radius: 1.18rem;
+  padding: 1rem 1.05rem;
+}
+
+.topologyCard {
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.featureCard {
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+}
+
+.topologyCard h3,
+.featureCard h3 {
+  margin: 0.55rem 0 0.55rem;
+  font-size: var(--type-md);
+}
+
+.topologyCard p,
+.featureCard p {
+  margin: 0;
+  font-size: var(--type-sm);
+  color: rgba(238, 244, 251, 0.72);
+  line-height: 1.6;
+}
+
+.section {
+  width: 100%;
+  display: grid;
+  gap: 1.2rem;
+}
+
+.sectionHeading {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.featureGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 980px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .featureGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .heroStats {
+    grid-template-columns: 1fr;
+  }
+
+  .heroCopy,
+  .heroPanel {
+    padding: 1rem;
+  }
+
+  .heroTitle {
+    font-size: var(--type-xl);
+  }
+}

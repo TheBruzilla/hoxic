@@ -1,0 +1,97 @@
+.docsRoot {
+  width: min(100%, 76rem);
+  padding: 3rem 1.25rem 4rem;
+}
+
+.hero {
+  width: 100%;
+  padding: 2rem;
+  border-radius: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background:
+    radial-gradient(circle at top right, rgba(87, 173, 197, 0.18), transparent 34%),
+    linear-gradient(180deg, rgba(9, 18, 28, 0.9), rgba(5, 11, 18, 0.94));
+  box-shadow:
+    0 24px 48px rgba(2, 8, 23, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.heroCopy {
+  max-width: 42rem;
+}
+
+.kicker {
+  color: #78d7f4;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+}
+
+.heroTitle {
+  margin: 0;
+}
+
+.heroText {
+  max-width: 40rem;
+  line-height: 1.7;
+}
+
+.heroActions {
+  margin-top: 0.25rem;
+}
+
+.section {
+  width: 100%;
+  display: grid;
+  gap: 1rem;
+}
+
+.sectionHeading {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.ruleCard {
+  display: grid;
+  gap: 0.45rem;
+  padding: 1.25rem 1.35rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(8, 15, 24, 0.42);
+}
+
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.stepCard {
+  padding: 1.15rem 1.2rem;
+  border-radius: 1.15rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(8, 15, 24, 0.42);
+  color: rgba(235, 243, 250, 0.92);
+}
+
+.stepCard p {
+  margin: 0;
+  line-height: 1.7;
+}
+
+@media (max-width: 820px) {
+  .docsRoot {
+    padding: 1.5rem 1rem 2.5rem;
+  }
+
+  .hero {
+    padding: 1.35rem;
+  }
+
+  .cardGrid {
+    grid-template-columns: 1fr;
+  }
+}

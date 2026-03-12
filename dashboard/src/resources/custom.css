@@ -1,0 +1,211 @@
+/* src/resources/custom.css
+   Global styles, fonts, gradients and theme variables.
+   Must be imported once in src/app/layout.tsx.
+*/
+
+/* Google Fonts (Ubuntu fallback if Once UI fonts fail) */
+@import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&display=swap');
+
+/* Global reset */
+html, body {
+  font-family: 'Ubuntu', sans-serif !important;
+  font-size: 16px;
+  overflow-x: hidden !important;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --type-xl: 1.5rem;
+  --type-md: 1.25rem;
+  --type-sm: 1rem;
+}
+
+body {
+  background: var(--site-bg);
+  background-attachment: fixed;
+  color: var(--text);
+  position: relative;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(52px);
+  opacity: 0.8;
+}
+
+body::before {
+  top: 6rem;
+  left: -6rem;
+  width: 18rem;
+  height: 18rem;
+  background: radial-gradient(circle, rgba(128, 246, 255, 0.22), transparent 68%);
+}
+
+body::after {
+  right: -5rem;
+  bottom: 10vh;
+  width: 20rem;
+  height: 20rem;
+  background: radial-gradient(circle, rgba(88, 198, 255, 0.18), transparent 70%);
+}
+
+::selection {
+  background: rgba(var(--accent-rgb), 0.22);
+  color: var(--text);
+}
+
+/* === Dark / default theme (keeps current dark-friendly tokens) === */
+:root,
+:root[data-theme="dark"] {
+  --primary: #96e4ff;
+  --primary-rgb: 150, 228, 255;
+  --accent-rgb: 150, 228, 255;
+  --text: #eff6ff;
+  --text-muted: #c6dbeb;
+  --card-bg: rgba(8, 20, 36, 0.46);
+  --card-border: rgba(173, 226, 255, 0.18);
+  --card-border-hover: rgba(173, 226, 255, 0.34);
+  --shadow: 0 24px 54px rgba(2, 8, 23, 0.36);
+  --radius: 12px;
+  --muted-overlay: rgba(150, 228, 255, 0.08);
+  --glass-fill: rgba(9, 22, 31, 0.72);
+  --glass-fill-strong: rgba(11, 28, 40, 0.84);
+  --glass-edge: rgba(255, 255, 255, 0.12);
+  --glass-highlight: rgba(255, 255, 255, 0.08);
+  --site-bg:
+    radial-gradient(circle at 18% 12%, rgba(150, 228, 255, 0.16), transparent 24%),
+    radial-gradient(circle at 78% 18%, rgba(150, 228, 255, 0.12), transparent 22%),
+    radial-gradient(circle at 50% 110%, rgba(150, 228, 255, 0.08), transparent 28%),
+    linear-gradient(180deg, #07121a 0%, #0a1620 48%, #0b1b25 100%);
+}
+
+/* === Light theme (applies when <html data-theme="light"> is set) === */
+:root[data-theme="light"] {
+  --primary: #4fcfff;
+  --primary-rgb: 79, 207, 255;
+  --accent-rgb: 79, 207, 255;
+  --text: #0f172a;
+  --text-muted: #475569;
+  --card-bg: rgba(248, 252, 255, 0.68);
+  --card-border: rgba(82, 151, 177, 0.14);
+  --card-border-hover: rgba(82, 151, 177, 0.24);
+  --shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+  --radius: 12px;
+  --muted-overlay: rgba(79, 207, 255, 0.06);
+  --glass-fill: rgba(255, 255, 255, 0.56);
+  --glass-fill-strong: rgba(255, 255, 255, 0.8);
+  --glass-edge: rgba(255, 255, 255, 0.38);
+  --glass-highlight: rgba(255, 255, 255, 0.22);
+
+  --neutral-on-background: #1a1a1a;
+  --neutral-on-background-weak: #444444;
+  --neutral-on-background-weaker: #666666;
+  --neutral-alpha-weak: rgba(0, 0, 0, 0.14);
+  --neutral-alpha-medium: rgba(0, 0, 0, 0.28);
+  --brand-on-background: #39bff6;
+  --brand-on-background-weak: #71d8ff;
+  --surface-card: rgba(248, 252, 255, 0.82);
+  --surface-border: rgba(79, 207, 255, 0.14);
+  --surface-overlay: rgba(79, 207, 255, 0.05);
+  --site-bg:
+    radial-gradient(circle at top, rgba(150, 228, 255, 0.34), transparent 32%),
+    radial-gradient(circle at 88% 14%, rgba(79, 207, 255, 0.2), transparent 18%),
+    linear-gradient(180deg, #eef8ff 0%, #f4fbff 48%, #edf6fd 100%);
+
+  --on-background: var(--neutral-on-background);
+  --on-background-weak: var(--neutral-on-background-weak);
+}
+
+/* === Gradient Utilities === */
+.golden-gradient-text {
+  background: linear-gradient(
+    90deg,
+    #c5c4a1 0%,
+    #d9d6b8 25%,
+    #e0dfb9 50%,
+    #d9d6b8 75%,
+    #c5c4a1 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 800;
+  display: inline-block;
+  background-size: 300% auto;
+  animation: shimmer 6s linear infinite;
+}
+
+.golden-gradient-subline {
+  background: linear-gradient(
+    90deg,
+    #c5c4a1 0%,
+    #d9d6b8 25%,
+    #e0dfb9 50%,
+    #d9d6b8 75%,
+    #c5c4a1 100%
+  );
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  opacity: 0.85;
+  font-weight: 600;
+  display: inline-block;
+  background-size: 300% auto;
+  animation: shimmer 8s linear infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* reCAPTCHA badge small & subtle */
+.grecaptcha-badge {
+  transform: scale(0.5) !important;
+  transform-origin: bottom right !important;
+  bottom: 8px !important;
+  right: 8px !important;
+  opacity: 0.3 !important;
+  z-index: 9999 !important;
+  transition: all 0.3s ease-in-out;
+}
+
+@media (max-width: 768px) {
+  .grecaptcha-badge {
+    transform: scale(0.4) !important;
+    bottom: 6px !important;
+    right: 6px !important;
+  }
+}
+
+/* Utility */
+a, button, .primary {
+  color: var(--primary);
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+button:hover,
+a:hover {
+  transform: translateY(-1px);
+}
+
+/* Keep page content below the navbar on all routes */
+.pageContentShell {
+  padding-top: 1.25rem !important;
+}
+
+@media (max-width: 768px) {
+  .pageContentShell {
+    padding-top: 5rem !important;
+  }
+}
