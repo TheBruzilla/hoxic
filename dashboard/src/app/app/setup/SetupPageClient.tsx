@@ -8,7 +8,6 @@ import {
   LuBoxes,
   LuCircleX,
   LuLayoutDashboard,
-  LuLink,
   LuShield,
   LuSparkles,
   LuWandSparkles,
@@ -31,14 +30,11 @@ import {
 } from "@/app/app/setup/setup-helpers";
 import styles from "@/components/console/console.module.scss";
 
-const DISCORD_DEVELOPER_PORTAL_URL = "https://discord.com/developers/applications";
-
 function SetupPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { bootstrap, loading, error, refresh } = useConsole();
   const [showFocusedTemplateMap, setShowFocusedTemplateMap] = useState(false);
-  const [showFullSuiteInstallGuide, setShowFullSuiteInstallGuide] = useState(false);
   const [showFullSuiteModal, setShowFullSuiteModal] = useState(false);
   const [validatedPrimaryBot, setValidatedPrimaryBot] = useState<BotRecord | null>(null);
   const [primaryDraft, setPrimaryDraft] = useState({ name: "HOXiq primary bot", token: "" });
@@ -267,14 +263,6 @@ function SetupPageContent() {
                   Prepare Full Suite
                 </button>
               )}
-              <button
-                type="button"
-                className={styles.buttonSecondary}
-                onClick={() => setShowFullSuiteInstallGuide(true)}
-              >
-                <LuLink />
-                Discord setup
-              </button>
               {guildConnected && fullSuiteInviteHref ? (
                 <a href={fullSuiteInviteHref} target="_blank" rel="noreferrer" className={styles.buttonSecondary}>
                   <LuBot />
@@ -499,74 +487,9 @@ function SetupPageContent() {
                     <LuSparkles />
                     {busyAction === "create-full-suite" ? "Validating…" : "Validate Full Suite"}
                   </button>
-                  <button
-                    type="button"
-                    className={styles.buttonSecondary}
-                    onClick={() => setShowFullSuiteInstallGuide(true)}
-                  >
-                    <LuLink />
-                    Discord setup
-                  </button>
                 </div>
               </>
             )}
-          </div>
-        </div>
-      ) : null}
-
-      {showFullSuiteInstallGuide ? (
-        <div className={styles.slotModalScrim} role="presentation" onClick={() => setShowFullSuiteInstallGuide(false)}>
-          <div
-            className={styles.slotModal}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="full-suite-install-guide-title"
-            onClick={event => event.stopPropagation()}
-          >
-            <div className={styles.splitHeader}>
-              <div>
-                <div className={styles.eyebrow}>Full Suite install</div>
-                <h3 id="full-suite-install-guide-title" className={styles.cardTitle}>What to do in Discord</h3>
-              </div>
-              <button
-                type="button"
-                className={styles.buttonGhost}
-                onClick={() => setShowFullSuiteInstallGuide(false)}
-                aria-label="Close full suite install guide"
-              >
-                <LuCircleX />
-              </button>
-            </div>
-            <div className={styles.setupDetailsGrid}>
-              <div className={styles.setupDetailTile}>
-                <span className={styles.setupDetailLabel}>Status</span>
-                <span className={styles.setupDetailValue}>
-                  {fullSuiteInviteHref ? "Invite link ready" : "Prepare template first"}
-                </span>
-              </div>
-              <div className={styles.setupDetailTile}>
-                <span className={styles.setupDetailLabel}>Server</span>
-                <span className={styles.setupDetailValue}>{targetGuild.name}</span>
-              </div>
-            </div>
-            <ul className={styles.infoList}>
-              <li>Open your app in Discord Developer Portal.</li>
-              <li>Go to Installation and turn on Guild Install.</li>
-              <li>Keep the bot install scopes as <code>bot</code> and <code>applications.commands</code>.</li>
-              <li>Save changes, then return here and click Invite bot.</li>
-            </ul>
-            <div className={styles.cardActions}>
-              <a href={DISCORD_DEVELOPER_PORTAL_URL} target="_blank" rel="noreferrer" className={styles.buttonSecondary}>
-                <LuLink />
-                Open Developer Portal
-              </a>
-              {fullSuiteInviteHref ? (
-                <a href={fullSuiteInviteHref} target="_blank" rel="noreferrer" className={styles.button}>
-                  <LuBot />
-                  Invite bot
-                </a>
-              ) : null}
-            </div>
           </div>
         </div>
       ) : null}

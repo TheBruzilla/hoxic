@@ -7,21 +7,8 @@ import { EmptyState, SectionHeader } from "@/components/console/ConsolePrimitive
 import { useConsole } from "@/components/console/ConsoleProvider";
 import { buildGuildTemplateOverrides, getTemplateDefinition, requestJson } from "@/lib/console";
 import { useGuildTemplateDraft } from "@/lib/templateDraft";
+import { buildProvisionHref, buildTemplateSelectorHref } from "@/app/app/setup/setup-helpers";
 import styles from "@/components/console/console.module.scss";
-
-function buildTemplateSelectorHref(returnTo: string, templateKey: string) {
-  const params = new URLSearchParams();
-  params.set("returnTo", returnTo);
-  params.set("template", templateKey);
-  return `/app/bots?${params.toString()}`;
-}
-
-function buildProvisionHref(guildId: string, templateKey: string) {
-  const params = new URLSearchParams();
-  if (guildId) params.set("guild", guildId);
-  if (templateKey) params.set("template", templateKey);
-  return `/app/provision?${params.toString()}`;
-}
 
 function BotsPageContent() {
   const router = useRouter();
@@ -133,6 +120,22 @@ function BotsPageContent() {
     router.replace(buildTemplateSelectorHref(returnTo, templateKey));
   }
 
+  async function clearTemplateSelection() {
+    setLockedTemplateKey("");
+
+    if (!isFocusedReturn && mainBot && returnGuildId) {
+      await requestJson(`/api/bots/${mainBot.id}/guild-configs/${returnGuildId}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          overrides: {},
+        }),
+      });
+      await refresh();
+    }
+
+    router.replace(buildTemplateSelectorHref(returnTo));
+  }
+
   return (
     <section className={styles.pageSurface}>
       <SectionHeader
@@ -162,8 +165,8 @@ function BotsPageContent() {
             <div className={styles.cardActions}>
               {selectedTemplate?.key === template.key ? (
                 <>
-                  <button type="button" className={styles.button} onClick={() => void chooseTemplate(template.key)}>
-                    Selected
+                  <button type="button" className={styles.button} onClick={() => void clearTemplateSelection()}>
+                    Deselect
                   </button>
                   {configureHref ? (
                     <Link href={configureHref} className={styles.buttonSecondary}>
