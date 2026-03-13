@@ -5,6 +5,7 @@ import Link from "next/link";
 import { EmptyState, SectionHeader } from "@/components/console/ConsolePrimitives";
 import { useConsole } from "@/components/console/ConsoleProvider";
 import { BotWorkspacePayload, ManageableGuildRecord, getBotWorkspaceHref, requestJson } from "@/lib/console";
+import { buildSetupHref } from "@/app/app/setup/setup-helpers";
 import styles from "@/components/console/console.module.scss";
 
 function getInitials(name: string) {
@@ -214,7 +215,7 @@ export default function AppOverviewPage() {
                   <Link
                     href={
                       guild.primaryBotId
-                        ? getBotWorkspaceHref(guild.primaryBotId, "overview", guild.id)
+                        ? buildSetupHref(guild.id)
                         : `/app/setup?guild=${encodeURIComponent(guild.id)}`
                     }
                     className={guild.primaryBotId ? styles.serverActionPrimary : styles.serverActionSecondary}

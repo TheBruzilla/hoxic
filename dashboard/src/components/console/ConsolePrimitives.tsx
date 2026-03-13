@@ -8,6 +8,7 @@ import styles from "./console.module.scss";
 export function SectionHeader({
   eyebrow,
   title,
+  description,
   actions,
   titleClassName,
 }: {
@@ -22,6 +23,7 @@ export function SectionHeader({
       <div>
         {eyebrow ? <div className={styles.eyebrow}>{eyebrow}</div> : null}
         <h1 className={`${styles.pageTitle} ${titleClassName || ""}`.trim()}>{title}</h1>
+        {description ? <p className={styles.pageText}>{description}</p> : null}
       </div>
       {actions ? <div className={styles.cardActions}>{actions}</div> : null}
     </div>
@@ -68,6 +70,7 @@ export function Badge({
 
 export function EmptyState({
   title,
+  description,
   action,
 }: {
   title: string;
@@ -77,6 +80,7 @@ export function EmptyState({
   return (
     <div className={styles.emptyState}>
       <strong>{title}</strong>
+      <p className={styles.pageText}>{description}</p>
       {action}
     </div>
   );

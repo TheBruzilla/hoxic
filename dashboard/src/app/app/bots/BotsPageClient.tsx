@@ -59,7 +59,24 @@ function BotsPageContent() {
   }, [lockedTemplateKey, returnTo, router, selectedTemplateKey]);
 
   if (!returnTo) {
-    return null;
+    return (
+      <section className={styles.pageSurface}>
+        <SectionHeader
+          eyebrow="Bot Fleet"
+          title="Choose a server first"
+          description="Template selection belongs to a server setup flow, not a standalone empty page."
+        />
+        <EmptyState
+          title="No setup context"
+          description="Open a server from the directory, then pick a template or continue into a bot workspace."
+          action={
+            <Link href="/app" className={styles.buttonSecondary}>
+              Back to servers
+            </Link>
+          }
+        />
+      </section>
+    );
   }
 
   if (loading) {
