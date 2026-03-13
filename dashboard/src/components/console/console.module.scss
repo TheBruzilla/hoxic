@@ -2266,20 +2266,23 @@ button.buttonDanger {
   }
 
   .serverPickerHero {
-    justify-items: stretch;
-    text-align: left;
+    justify-items: center;
+    text-align: center;
   }
 
   .serverPickerHero .pageHeader {
-    justify-content: flex-start;
+    justify-content: center;
+    width: 100%;
   }
 
   .serverPickerHero .pageHeader > div:first-child {
     width: 100%;
+    max-width: min(100%, 22rem);
+    margin-inline: auto;
   }
 
   .serverPickerHero .inlineMeta {
-    justify-content: flex-start;
+    justify-content: center;
   }
 
   .setupProgressRing {
@@ -2639,12 +2642,14 @@ button.buttonDanger {
   }
 
   .serverPickerHero {
-    gap: 0.72rem;
+    gap: 0.62rem;
   }
 
   .serverPickerHero .pageTitle {
-    font-size: clamp(1.58rem, 6.8vw, 1.92rem);
-    line-height: 0.98;
+    max-width: 11ch;
+    margin-inline: auto;
+    font-size: clamp(1.52rem, 7.2vw, 1.9rem);
+    line-height: 0.94;
     letter-spacing: -0.06em;
   }
 
@@ -2654,7 +2659,8 @@ button.buttonDanger {
   }
 
   .serverPickerHero .inlineMeta {
-    gap: 0.42rem;
+    justify-content: center;
+    gap: 0.38rem;
   }
 
   .serverPickerHero .chip {
