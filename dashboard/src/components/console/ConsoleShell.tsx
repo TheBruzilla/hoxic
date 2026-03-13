@@ -59,11 +59,19 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
     : null;
   const isServerDirectory = pathname === "/app";
   const isMainBotIndex = pathname === "/app/bots";
+  const isBotWorkspace = pathname.startsWith("/app/bots/");
   const isGuildSetup = pathname === "/app/setup" && Boolean(focusedGuildId);
   const isFocusedSetup = pathname === "/app/setup/focused" && Boolean(focusedGuildId);
   const isProvisionPage = pathname === "/app/provision" && Boolean(focusedGuildId);
   const isHeaderlessRoute = false;
-  const showSidebar = !(isServerDirectory || isMainBotIndex || isGuildSetup || isFocusedSetup || isProvisionPage);
+  const showSidebar = !(
+    isServerDirectory ||
+    isMainBotIndex ||
+    isBotWorkspace ||
+    isGuildSetup ||
+    isFocusedSetup ||
+    isProvisionPage
+  );
   const currentBot = currentBotId ? bootstrap?.bots.find(item => item.id === currentBotId) || null : null;
   const currentHeartbeat = currentBot ? bootstrap?.heartbeats.find(item => item.botInstanceId === currentBot.id) || null : null;
 
