@@ -169,7 +169,6 @@ export default function AppOverviewPage() {
         <SectionHeader
           eyebrow="Servers"
           title="Select the server you want to manage"
-          description="Start with the Discord servers where you are owner or admin. If the bot is already inside a server, go straight in. Otherwise, set it up first."
         />
         <div className={styles.inlineMeta}>
           <span className={styles.chip}>{visibleGuilds.length} visible servers</span>
