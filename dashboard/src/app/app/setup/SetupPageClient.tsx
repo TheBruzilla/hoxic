@@ -62,11 +62,11 @@ function SetupPageContent() {
   }, [router, targetGuildId]);
 
   useEffect(() => {
-    if (!targetGuildId || !lockedTemplateKey || selectedTemplateKey === lockedTemplateKey) {
+    if (!targetGuildId || selectedTemplateKey === lockedTemplateKey) {
       return;
     }
 
-    router.replace(buildSetupHref(targetGuildId, lockedTemplateKey));
+    router.replace(buildSetupHref(targetGuildId, lockedTemplateKey || undefined));
   }, [lockedTemplateKey, router, selectedTemplateKey, targetGuildId]);
 
   if (loading) {

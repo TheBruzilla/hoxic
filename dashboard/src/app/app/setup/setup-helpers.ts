@@ -1,4 +1,10 @@
-import type { BotRecord, ManageableGuildRecord } from "@/lib/console";
+import {
+  BotRecord,
+  ManageableGuildRecord,
+  TemplateDefinition,
+  getBotWorkspaceHref,
+  getEnabledModuleCards,
+} from "@/lib/console";
 
 export const DISCORD_DEVELOPER_PORTAL_URL = "https://discord.com/developers/applications";
 
@@ -34,6 +40,16 @@ export function buildProvisionHref(guildId: string, templateKey: string, slotInd
   if (templateKey) params.set("template", templateKey);
   if (typeof slotIndex === "number") params.set("slot", String(slotIndex));
   return `/app/provision?${params.toString()}`;
+}
+
+export function stripTemplateFromHref(href: string) {
+  try {
+    const target = new URL(href, "http://localhost");
+    target.searchParams.delete("template");
+    return `${target.pathname}${target.search}`;
+  } catch {
+    return href;
+  }
 }
 
 export function getProvisioningLabel(guild: ManageableGuildRecord) {
@@ -99,4 +115,25 @@ export function findSecondaryBots(bots: BotRecord[], guild: ManageableGuildRecor
     return mapped;
   }
   return bots.filter(bot => bot.role === "secondary" && guild.botIds.includes(bot.id));
+}
+
+export function resolveTemplateConfigureHref({
+  templates,
+  bot,
+  guildId,
+  fallbackHref,
+  guildOverrides,
+}: {
+  templates: TemplateDefinition[];
+  bot: BotRecord | null;
+  guildId?: string;
+  fallbackHref: string;
+  guildOverrides?: Record<string, unknown>;
+}) {
+  if (!bot) {
+    return fallbackHref;
+  }
+
+  const firstEnabledModule = getEnabledModuleCards(templates, bot, guildId, guildOverrides)[0];
+  return firstEnabledModule?.href || getBotWorkspaceHref(bot.id, "overview", guildId);
 }

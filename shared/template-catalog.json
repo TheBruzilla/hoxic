@@ -1,0 +1,434 @@
+{
+  "modules": [
+    {
+      "id": "moderation",
+      "label": "Moderation"
+    },
+    {
+      "id": "automod",
+      "label": "AutoMod"
+    },
+    {
+      "id": "autorole",
+      "label": "Auto Role"
+    },
+    {
+      "id": "roleCommands",
+      "label": "Role Commands"
+    },
+    {
+      "id": "reputation",
+      "label": "Reputation"
+    },
+    {
+      "id": "logs",
+      "label": "Logs"
+    },
+    {
+      "id": "notifications",
+      "label": "Notifications"
+    },
+    {
+      "id": "onboarding",
+      "label": "Onboarding"
+    },
+    {
+      "id": "verification",
+      "label": "Verification"
+    },
+    {
+      "id": "reactionRoles",
+      "label": "Reaction Roles"
+    },
+    {
+      "id": "tickets",
+      "label": "Ticketing"
+    },
+    {
+      "id": "modmail",
+      "label": "Modmail"
+    },
+    {
+      "id": "ai",
+      "label": "AI"
+    },
+    {
+      "id": "reminders",
+      "label": "Reminders"
+    },
+    {
+      "id": "rss",
+      "label": "RSS"
+    },
+    {
+      "id": "webhooks",
+      "label": "Webhooks"
+    },
+    {
+      "id": "componentsV2",
+      "label": "Message Studio"
+    },
+    {
+      "id": "musicVoice",
+      "label": "Music"
+    },
+    {
+      "id": "voiceRoles",
+      "label": "Voice Roles"
+    },
+    {
+      "id": "serverStats",
+      "label": "Server Stats"
+    },
+    {
+      "id": "feeds",
+      "label": "Feeds"
+    },
+    {
+      "id": "reddit",
+      "label": "Reddit"
+    },
+    {
+      "id": "twitch",
+      "label": "Twitch"
+    },
+    {
+      "id": "youtube",
+      "label": "YouTube"
+    },
+    {
+      "id": "streaming",
+      "label": "Streaming"
+    },
+    {
+      "id": "rsvp",
+      "label": "RSVP"
+    },
+    {
+      "id": "soundboard",
+      "label": "Soundboard"
+    },
+    {
+      "id": "customCommands",
+      "label": "Custom Commands"
+    },
+    {
+      "id": "premium",
+      "label": "Premium"
+    },
+    {
+      "id": "personalizer",
+      "label": "Personalizer"
+    },
+    {
+      "id": "utilities",
+      "label": "Utilities"
+    }
+  ],
+  "templates": [
+    {
+      "key": "full-suite",
+      "name": "Full Suite",
+      "description": "Everything enabled in one bot: moderation, support, AI, voice, feeds, templates, and utilities.",
+      "enabledModules": {
+        "moderation": true,
+        "automod": true,
+        "autorole": true,
+        "roleCommands": true,
+        "reputation": true,
+        "logs": true,
+        "notifications": true,
+        "onboarding": true,
+        "verification": true,
+        "reactionRoles": true,
+        "tickets": true,
+        "modmail": true,
+        "ai": true,
+        "reminders": true,
+        "rss": true,
+        "webhooks": true,
+        "componentsV2": true,
+        "musicVoice": true,
+        "voiceRoles": true,
+        "serverStats": true,
+        "feeds": true,
+        "reddit": true,
+        "twitch": true,
+        "youtube": true,
+        "streaming": true,
+        "rsvp": true,
+        "soundboard": true,
+        "customCommands": true,
+        "premium": true,
+        "personalizer": true,
+        "utilities": true
+      }
+    },
+    {
+      "key": "support",
+      "name": "Support",
+      "description": "Moderation, ticketing, onboarding, logging, and modmail defaults.",
+      "enabledModules": {
+        "moderation": true,
+        "automod": true,
+        "autorole": true,
+        "roleCommands": true,
+        "reputation": true,
+        "logs": true,
+        "notifications": true,
+        "onboarding": true,
+        "verification": true,
+        "reactionRoles": false,
+        "tickets": true,
+        "modmail": true,
+        "ai": false,
+        "reminders": true,
+        "rss": true,
+        "webhooks": true,
+        "componentsV2": true,
+        "musicVoice": false,
+        "voiceRoles": false,
+        "serverStats": false,
+        "feeds": false,
+        "reddit": true,
+        "twitch": false,
+        "youtube": false,
+        "streaming": false,
+        "rsvp": true,
+        "soundboard": false,
+        "customCommands": true,
+        "premium": true,
+        "personalizer": true,
+        "utilities": true
+      }
+    },
+    {
+      "key": "moderation-core",
+      "name": "Moderation Core",
+      "description": "Moderation-heavy template with logs, onboarding, verification, and operator tools.",
+      "enabledModules": {
+        "moderation": true,
+        "automod": true,
+        "autorole": true,
+        "roleCommands": true,
+        "reputation": true,
+        "logs": true,
+        "notifications": true,
+        "onboarding": true,
+        "verification": true,
+        "reactionRoles": true,
+        "tickets": true,
+        "modmail": true,
+        "ai": false,
+        "reminders": true,
+        "rss": false,
+        "webhooks": true,
+        "componentsV2": true,
+        "musicVoice": false,
+        "voiceRoles": false,
+        "serverStats": false,
+        "feeds": false,
+        "reddit": false,
+        "twitch": false,
+        "youtube": false,
+        "streaming": false,
+        "rsvp": true,
+        "soundboard": false,
+        "customCommands": true,
+        "premium": true,
+        "personalizer": true,
+        "utilities": true
+      }
+    },
+    {
+      "key": "community",
+      "name": "Community",
+      "description": "Moderation, onboarding, role panels, server stats, feeds, and utilities.",
+      "enabledModules": {
+        "moderation": true,
+        "automod": true,
+        "autorole": true,
+        "roleCommands": true,
+        "reputation": true,
+        "logs": true,
+        "notifications": true,
+        "onboarding": true,
+        "verification": true,
+        "reactionRoles": true,
+        "tickets": false,
+        "modmail": false,
+        "ai": false,
+        "reminders": true,
+        "rss": true,
+        "webhooks": false,
+        "componentsV2": true,
+        "musicVoice": false,
+        "voiceRoles": true,
+        "serverStats": true,
+        "feeds": true,
+        "reddit": true,
+        "twitch": true,
+        "youtube": true,
+        "streaming": true,
+        "rsvp": true,
+        "soundboard": false,
+        "customCommands": true,
+        "premium": true,
+        "personalizer": true,
+        "utilities": true
+      }
+    },
+    {
+      "key": "onboarding-growth",
+      "name": "Onboarding Growth",
+      "description": "Welcome, verification, role panels, server stats, reminders, and community feeds.",
+      "enabledModules": {
+        "moderation": false,
+        "automod": false,
+        "autorole": true,
+        "roleCommands": true,
+        "reputation": true,
+        "logs": true,
+        "notifications": true,
+        "onboarding": true,
+        "verification": true,
+        "reactionRoles": true,
+        "tickets": false,
+        "modmail": false,
+        "ai": false,
+        "reminders": true,
+        "rss": true,
+        "webhooks": false,
+        "componentsV2": true,
+        "musicVoice": false,
+        "voiceRoles": true,
+        "serverStats": true,
+        "feeds": true,
+        "reddit": true,
+        "twitch": true,
+        "youtube": true,
+        "streaming": true,
+        "rsvp": true,
+        "soundboard": false,
+        "customCommands": true,
+        "premium": true,
+        "personalizer": true,
+        "utilities": true
+      }
+    },
+    {
+      "key": "ai-first",
+      "name": "AI First",
+      "description": "AI assistant, reminders, webhooks, and moderation defaults.",
+      "enabledModules": {
+        "moderation": true,
+        "automod": true,
+        "autorole": false,
+        "roleCommands": false,
+        "reputation": false,
+        "logs": true,
+        "notifications": true,
+        "onboarding": true,
+        "verification": false,
+        "reactionRoles": false,
+        "tickets": false,
+        "modmail": false,
+        "ai": true,
+        "reminders": true,
+        "rss": true,
+        "webhooks": true,
+        "componentsV2": true,
+        "musicVoice": false,
+        "voiceRoles": false,
+        "serverStats": false,
+        "feeds": false,
+        "reddit": false,
+        "twitch": false,
+        "youtube": true,
+        "streaming": true,
+        "rsvp": false,
+        "soundboard": false,
+        "customCommands": true,
+        "premium": true,
+        "personalizer": true,
+        "utilities": true
+      }
+    },
+    {
+      "key": "utility-hub",
+      "name": "Utility Hub",
+      "description": "Utilities, reminders, feeds, Components V2, webhooks, and server management helpers.",
+      "enabledModules": {
+        "moderation": false,
+        "automod": false,
+        "autorole": false,
+        "roleCommands": false,
+        "reputation": false,
+        "logs": true,
+        "notifications": true,
+        "onboarding": true,
+        "verification": false,
+        "reactionRoles": false,
+        "tickets": false,
+        "modmail": false,
+        "ai": false,
+        "reminders": true,
+        "rss": true,
+        "webhooks": true,
+        "componentsV2": true,
+        "musicVoice": false,
+        "voiceRoles": false,
+        "serverStats": true,
+        "feeds": true,
+        "reddit": true,
+        "twitch": false,
+        "youtube": true,
+        "streaming": false,
+        "rsvp": false,
+        "soundboard": true,
+        "customCommands": true,
+        "premium": true,
+        "personalizer": true,
+        "utilities": true
+      }
+    },
+    {
+      "key": "music-community",
+      "name": "Music Community",
+      "description": "Community defaults plus voice helpers and music scaffolding.",
+      "enabledModules": {
+        "moderation": true,
+        "automod": true,
+        "autorole": false,
+        "roleCommands": false,
+        "reputation": false,
+        "logs": true,
+        "notifications": true,
+        "onboarding": true,
+        "verification": false,
+        "reactionRoles": true,
+        "tickets": false,
+        "modmail": false,
+        "ai": false,
+        "reminders": true,
+        "rss": true,
+        "webhooks": false,
+        "componentsV2": true,
+        "musicVoice": true,
+        "voiceRoles": true,
+        "serverStats": true,
+        "feeds": true,
+        "reddit": false,
+        "twitch": true,
+        "youtube": true,
+        "streaming": true,
+        "rsvp": false,
+        "soundboard": true,
+        "customCommands": true,
+        "premium": true,
+        "personalizer": true,
+        "utilities": true
+      }
+    }
+  ]
+}

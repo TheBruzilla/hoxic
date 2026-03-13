@@ -5,7 +5,7 @@ import Link from "next/link";
 import { EmptyState, SectionHeader } from "@/components/console/ConsolePrimitives";
 import { useConsole } from "@/components/console/ConsoleProvider";
 import { BotWorkspacePayload, ManageableGuildRecord, getBotWorkspaceHref, requestJson } from "@/lib/console";
-import { buildSetupHref } from "@/app/app/setup/setup-helpers";
+import { buildSetupHref, getAccessLabel } from "@/app/app/setup/setup-helpers";
 import styles from "@/components/console/console.module.scss";
 
 function getInitials(name: string) {
@@ -180,7 +180,11 @@ export default function AppOverviewPage() {
       <section className={`${styles.pageSurface} ${styles.serverPickerSurface}`}>
         {visibleGuilds.length ? (
           <div className={styles.serverGrid}>
-            {visibleGuilds.map(guild => (
+            {visibleGuilds.map(guild => {
+              const canManageGuild = manageableGuilds.some(item => item.id === guild.id);
+              const accessLabel = canManageGuild ? getAccessLabel(guild.isOwner) : "Connected server";
+
+              return (
               <article key={guild.id} className={`${styles.card} ${styles.serverCard}`}>
                 <div
                   className={styles.serverMedia}
@@ -199,16 +203,11 @@ export default function AppOverviewPage() {
                   <div className={styles.serverCopy}>
                     <div className={styles.serverTitleRow}>
                       <h3 className={styles.cardTitle}>{guild.name}</h3>
+                      {guild.primaryBotId ? (
+                        <span className={styles.chip}>{guild.connectedBotNames[0] || "Bot linked"}</span>
+                      ) : null}
                     </div>
-                    <p className={styles.serverSubline}>
-                      {guild.primaryBotId
-                        ? guild.connectedBotNames[0] || "Bot connected"
-                        : manageableGuilds.some(item => item.id === guild.id) && guild.isOwner
-                          ? "Owner"
-                          : manageableGuilds.some(item => item.id === guild.id)
-                            ? "Administrator"
-                            : "Connected server"}
-                    </p>
+                    <p className={styles.serverSubline}>{accessLabel}</p>
                   </div>
 
                   <Link
@@ -223,7 +222,8 @@ export default function AppOverviewPage() {
                   </Link>
                 </div>
               </article>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <EmptyState

@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>HOXIQ Template Builder</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #071018;
+        --panel: rgba(12, 24, 37, 0.92);
+        --panel-soft: rgba(20, 36, 53, 0.86);
+        --border: rgba(112, 188, 214, 0.18);
+        --text: #eaf6fb;
+        --muted: #a5c2d1;
+        --accent: #62d4f3;
+        --accent-strong: #2e79ff;
+        --success: #75e1b6;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at top right, rgba(46, 121, 255, 0.18), transparent 32%),
+          radial-gradient(circle at bottom left, rgba(98, 212, 243, 0.15), transparent 28%),
+          var(--bg);
+        color: var(--text);
+        font: 16px/1.45 "Segoe UI", sans-serif;
+      }
+
+      main {
+        width: min(1100px, calc(100% - 32px));
+        margin: 24px auto;
+        display: grid;
+        gap: 18px;
+      }
+
+      .panel {
+        border: 1px solid var(--border);
+        border-radius: 20px;
+        padding: 20px;
+        background:
+          linear-gradient(145deg, rgba(98, 212, 243, 0.08), rgba(255, 255, 255, 0.02)),
+          var(--panel);
+        box-shadow: 0 20px 40px rgba(1, 7, 14, 0.36);
+      }
+
+      h1, h2 {
+        margin: 0;
+        line-height: 1.05;
+      }
+
+      p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .header {
+        display: grid;
+        gap: 10px;
+      }
+
+      .toolbar,
+      .metadata {
+        display: grid;
+        gap: 12px;
+      }
+
+      @media (min-width: 800px) {
+        .toolbar {
+          grid-template-columns: minmax(0, 1.3fr) auto auto;
+          align-items: end;
+        }
+
+        .metadata {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+
+      input,
+      select,
+      textarea,
+      button {
+        font: inherit;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 12px;
+        padding: 12px 14px;
+        color: var(--text);
+        background: rgba(8, 15, 25, 0.86);
+      }
+
+      textarea {
+        min-height: 110px;
+        resize: vertical;
+      }
+
+      button {
+        border: 0;
+        border-radius: 12px;
+        min-height: 46px;
+        padding: 0 16px;
+        color: var(--text);
+        background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+        cursor: pointer;
+        font-weight: 700;
+      }
+
+      button.secondary {
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .status {
+        min-height: 24px;
+        font-size: 0.92rem;
+      }
+
+      .status[data-tone="success"] {
+        color: var(--success);
+      }
+
+      .status[data-tone="error"] {
+        color: #ffb0b5;
+      }
+
+      .checklist {
+        display: grid;
+        gap: 10px;
+      }
+
+      @media (min-width: 720px) {
+        .checklist {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      .toggle {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: center;
+        gap: 12px;
+        padding: 13px 14px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 14px;
+        background: var(--panel-soft);
+      }
+
+      .toggle input {
+        width: 18px;
+        height: 18px;
+        margin: 0;
+      }
+
+      .toggle strong {
+        display: block;
+      }
+
+      .hint {
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="panel header">
+        <h1>HOXIQ Template Builder</h1>
+        <p>Edits the repo-level template catalog used by both the dashboard and the control-plane. Save downloads a clean replacement for <code>shared/template-catalog.json</code>.</p>
+      </section>
+
+      <section class="panel">
+        <div class="toolbar">
+          <label>
+            Template
+            <select id="template-select"></select>
+          </label>
+          <button id="new-template" class="secondary" type="button">New template</button>
+          <button id="reload-catalog" class="secondary" type="button">Reload catalog</button>
+        </div>
+
+        <div class="metadata" style="margin-top: 14px;">
+          <label>
+            Template key
+            <input id="template-key" autocomplete="off" spellcheck="false">
+          </label>
+          <label>
+            Template name
+            <input id="template-name" autocomplete="off">
+          </label>
+          <label>
+            Description
+            <textarea id="template-description"></textarea>
+          </label>
+        </div>
+
+        <div style="margin-top: 18px; display: grid; gap: 12px;">
+          <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <button id="save-catalog" type="button">Save and download JSON</button>
+            <button id="delete-template" class="secondary" type="button">Delete template</button>
+          </div>
+          <div id="status" class="status" aria-live="polite"></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div style="display: grid; gap: 6px; margin-bottom: 14px;">
+          <h2>Enabled bot functions</h2>
+          <p>Toggle the exact functions each template exposes. This builder manages module membership only.</p>
+        </div>
+        <div id="module-checklist" class="checklist"></div>
+      </section>
+    </main>
+
+    <script>
+      const state = {
+        catalog: null,
+        selectedIndex: 0,
+      };
+
+      const elements = {
+        templateSelect: document.getElementById("template-select"),
+        templateKey: document.getElementById("template-key"),
+        templateName: document.getElementById("template-name"),
+        templateDescription: document.getElementById("template-description"),
+        moduleChecklist: document.getElementById("module-checklist"),
+        status: document.getElementById("status"),
+        saveCatalog: document.getElementById("save-catalog"),
+        deleteTemplate: document.getElementById("delete-template"),
+        newTemplate: document.getElementById("new-template"),
+        reloadCatalog: document.getElementById("reload-catalog"),
+      };
+
+      async function loadCatalog() {
+        try {
+          const response = await fetch("./shared/template-catalog.json", { cache: "no-store" });
+          if (!response.ok) {
+            throw new Error(`Failed to load catalog (${response.status})`);
+          }
+          state.catalog = await response.json();
+          state.selectedIndex = 0;
+          render();
+          setStatus("Loaded shared/template-catalog.json", "success");
+        } catch (error) {
+          setStatus("Open this file through a local HTTP server so it can load shared/template-catalog.json.", "error");
+          console.error(error);
+        }
+      }
+
+      function setStatus(message, tone = "") {
+        elements.status.textContent = message;
+        elements.status.dataset.tone = tone;
+      }
+
+      function getSelectedTemplate() {
+        return state.catalog?.templates?.[state.selectedIndex] || null;
+      }
+
+      function ensureCatalogShape() {
+        if (!state.catalog) {
+          state.catalog = { modules: [], templates: [] };
+        }
+        state.catalog.modules ||= [];
+        state.catalog.templates ||= [];
+      }
+
+      function render() {
+        ensureCatalogShape();
+        renderTemplateOptions();
+        renderTemplateFields();
+        renderModules();
+      }
+
+      function renderTemplateOptions() {
+        elements.templateSelect.innerHTML = "";
+        state.catalog.templates.forEach((template, index) => {
+          const option = document.createElement("option");
+          option.value = String(index);
+          option.textContent = `${template.name} (${template.key})`;
+          if (index === state.selectedIndex) {
+            option.selected = true;
+          }
+          elements.templateSelect.append(option);
+        });
+      }
+
+      function renderTemplateFields() {
+        const template = getSelectedTemplate();
+        elements.templateKey.value = template?.key || "";
+        elements.templateName.value = template?.name || "";
+        elements.templateDescription.value = template?.description || "";
+      }
+
+      function renderModules() {
+        elements.moduleChecklist.innerHTML = "";
+        const template = getSelectedTemplate();
+        if (!template) {
+          return;
+        }
+
+        state.catalog.modules.forEach(module => {
+          const label = document.createElement("label");
+          label.className = "toggle";
+
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.checked = Boolean(template.enabledModules?.[module.id]);
+          checkbox.addEventListener("change", () => {
+            template.enabledModules[module.id] = checkbox.checked;
+          });
+
+          const copy = document.createElement("div");
+          const title = document.createElement("strong");
+          title.textContent = module.label;
+          const hint = document.createElement("span");
+          hint.className = "hint";
+          hint.textContent = module.id;
+          copy.append(title, hint);
+
+          label.append(checkbox, copy);
+          elements.moduleChecklist.append(label);
+        });
+      }
+
+      function normalizeKey(value) {
+        return value.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+      }
+
+      function syncTemplateFields() {
+        const template = getSelectedTemplate();
+        if (!template) {
+          return;
+        }
+        template.key = normalizeKey(elements.templateKey.value);
+        template.name = elements.templateName.value.trim();
+        template.description = elements.templateDescription.value.trim();
+        renderTemplateOptions();
+      }
+
+      function createEmptyEnabledModules() {
+        return Object.fromEntries(state.catalog.modules.map(module => [module.id, false]));
+      }
+
+      function downloadCatalog() {
+        syncTemplateFields();
+        const invalid = state.catalog.templates.find(template => !template.key || !template.name);
+        if (invalid) {
+          setStatus("Every template needs both a key and a name before saving.", "error");
+          return;
+        }
+
+        const blob = new Blob([JSON.stringify(state.catalog, null, 2) + "\n"], { type: "application/json" });
+        const anchor = document.createElement("a");
+        anchor.href = URL.createObjectURL(blob);
+        anchor.download = "template-catalog.json";
+        anchor.click();
+        URL.revokeObjectURL(anchor.href);
+        setStatus("Downloaded template-catalog.json", "success");
+      }
+
+      elements.templateSelect.addEventListener("change", event => {
+        state.selectedIndex = Number(event.target.value);
+        renderTemplateFields();
+        renderModules();
+      });
+
+      elements.templateKey.addEventListener("input", syncTemplateFields);
+      elements.templateName.addEventListener("input", syncTemplateFields);
+      elements.templateDescription.addEventListener("input", syncTemplateFields);
+
+      elements.newTemplate.addEventListener("click", () => {
+        ensureCatalogShape();
+        state.catalog.templates.push({
+          key: `template-${state.catalog.templates.length + 1}`,
+          name: `Template ${state.catalog.templates.length + 1}`,
+          description: "",
+          enabledModules: createEmptyEnabledModules(),
+        });
+        state.selectedIndex = state.catalog.templates.length - 1;
+        render();
+      });
+
+      elements.deleteTemplate.addEventListener("click", () => {
+        if (!state.catalog?.templates?.length) {
+          return;
+        }
+        state.catalog.templates.splice(state.selectedIndex, 1);
+        state.selectedIndex = Math.max(0, Math.min(state.selectedIndex, state.catalog.templates.length - 1));
+        render();
+      });
+
+      elements.saveCatalog.addEventListener("click", downloadCatalog);
+      elements.reloadCatalog.addEventListener("click", () => void loadCatalog());
+
+      void loadCatalog();
+    </script>
+  </body>
+</html>

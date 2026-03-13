@@ -26,6 +26,7 @@ import {
   getFocusedSlotLabel,
   getGuildProvisioning,
   getTransitionLockMessage,
+  resolveTemplateConfigureHref,
 } from "@/app/app/setup/setup-helpers";
 import styles from "@/components/console/console.module.scss";
 
@@ -71,9 +72,7 @@ function FocusedBotsPageContent() {
     if (!targetGuildId || !selectedTemplateKey || !Number.isInteger(selectedSlotIndex) || selectedSlotIndex < 0 || selectedSlotIndex > 3) {
       return;
     }
-    if (slotTemplateKeys[selectedSlotIndex] !== selectedTemplateKey) {
-      return;
-    }
+
     router.replace(buildFocusedBotsHref(targetGuildId));
   }, [router, selectedSlotIndex, selectedTemplateKey, slotTemplateKeys, targetGuildId]);
 
@@ -220,7 +219,14 @@ function FocusedBotsPageContent() {
             const slotHref = bot
               ? getBotWorkspaceHref(bot.id, "overview", targetGuildId || undefined)
               : slotTemplateSelectorHref;
-            const controlsHref = bot ? getBotWorkspaceHref(bot.id, "controls", targetGuildId || undefined) : null;
+            const configureTemplateHref = slotTemplate
+              ? resolveTemplateConfigureHref({
+                  templates,
+                  bot,
+                  guildId: targetGuildId || undefined,
+                  fallbackHref: slotProvisionHref,
+                })
+              : "";
             const inviteHref = bot?.applicationId ? getSharedBotInviteHref(bot.applicationId, targetGuildId || undefined) : null;
             const canStart = bot ? bot.status !== "running" && bot.status !== "starting" : false;
 
@@ -249,8 +255,8 @@ function FocusedBotsPageContent() {
                       <LuLayoutDashboard />
                       Open workspace
                     </Link>
-                    {controlsHref ? (
-                      <Link href={controlsHref} className={styles.buttonSecondary}>
+                    {configureTemplateHref ? (
+                      <Link href={configureTemplateHref} className={styles.buttonSecondary}>
                         <LuBoxes />
                         Template controls
                       </Link>
@@ -294,7 +300,7 @@ function FocusedBotsPageContent() {
                       <LuBoxes />
                       Configure slot
                     </button>
-                    <Link href={slotProvisionHref} className={styles.buttonSecondary}>
+                    <Link href={configureTemplateHref} className={styles.buttonSecondary}>
                       <LuWandSparkles />
                       {`Configure ${slotTemplate.name}`}
                     </Link>

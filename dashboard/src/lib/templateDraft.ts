@@ -6,8 +6,12 @@ const TEMPLATE_DRAFT_EVENT = "hoxiq-template-draft-change";
 
 type Listener = () => void;
 
+type TemplateDraftRecord =
+  | { state: "selected"; templateKey: string }
+  | { state: "cleared" };
+
 const listeners = new Set<Listener>();
-const draftCache = new Map<string, string>();
+const draftCache = new Map<string, TemplateDraftRecord | null>();
 
 function getDraftCacheKey(guildId: string, scope: string) {
   return `${guildId}:${scope}`;
@@ -50,43 +54,74 @@ function subscribe(listener: Listener) {
   };
 }
 
-export function readGuildTemplateDraft(guildId: string, scope = "guild") {
+function parseTemplateDraftRecord(value: string | null): TemplateDraftRecord | null {
+  if (!value) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(value) as unknown;
+    if (parsed && typeof parsed === "object" && "state" in parsed) {
+      const state = (parsed as { state?: unknown }).state;
+      if (state === "cleared") {
+        return { state: "cleared" };
+      }
+
+      if (state === "selected") {
+        const templateKey = (parsed as { templateKey?: unknown }).templateKey;
+        if (typeof templateKey === "string" && templateKey.length > 0) {
+          return { state: "selected", templateKey };
+        }
+      }
+    }
+  } catch {
+    if (value.length > 0) {
+      return { state: "selected", templateKey: value };
+    }
+  }
+
+  return null;
+}
+
+export function readGuildTemplateDraftState(guildId: string, scope = "guild") {
   if (!guildId) {
-    return "";
+    return null;
   }
 
   const cacheKey = getDraftCacheKey(guildId, scope);
   if (draftCache.has(cacheKey)) {
-    return draftCache.get(cacheKey) || "";
+    return draftCache.get(cacheKey) || null;
   }
 
   if (typeof window === "undefined") {
-    return "";
+    return null;
   }
 
   try {
-    const storedTemplateKey = window.localStorage.getItem(getGuildTemplateDraftKey(guildId, scope)) || "";
-    if (storedTemplateKey) {
-      draftCache.set(cacheKey, storedTemplateKey);
-    }
-    return storedTemplateKey;
+    const storedDraft = parseTemplateDraftRecord(window.localStorage.getItem(getGuildTemplateDraftKey(guildId, scope)));
+    draftCache.set(cacheKey, storedDraft);
+    return storedDraft;
   } catch {
-    return "";
+    return null;
   }
 }
 
-export function writeGuildTemplateDraft(guildId: string, templateKey: string, scope = "guild") {
+export function readGuildTemplateDraft(guildId: string, scope = "guild") {
+  const record = readGuildTemplateDraftState(guildId, scope);
+  return record?.state === "selected" ? record.templateKey : "";
+}
+
+export function writeGuildTemplateDraftState(
+  guildId: string,
+  record: TemplateDraftRecord | null,
+  scope = "guild",
+) {
   if (!guildId) {
     return;
   }
 
   const cacheKey = getDraftCacheKey(guildId, scope);
-
-  if (templateKey) {
-    draftCache.set(cacheKey, templateKey);
-  } else {
-    draftCache.delete(cacheKey);
-  }
+  draftCache.set(cacheKey, record);
 
   if (typeof window === "undefined") {
     emitTemplateDraftChange();
@@ -94,8 +129,8 @@ export function writeGuildTemplateDraft(guildId: string, templateKey: string, sc
   }
 
   try {
-    if (templateKey) {
-      window.localStorage.setItem(getGuildTemplateDraftKey(guildId, scope), templateKey);
+    if (record) {
+      window.localStorage.setItem(getGuildTemplateDraftKey(guildId, scope), JSON.stringify(record));
     } else {
       window.localStorage.removeItem(getGuildTemplateDraftKey(guildId, scope));
     }
@@ -106,13 +141,33 @@ export function writeGuildTemplateDraft(guildId: string, templateKey: string, sc
   }
 }
 
+export function writeGuildTemplateDraft(guildId: string, templateKey: string, scope = "guild") {
+  writeGuildTemplateDraftState(
+    guildId,
+    templateKey ? { state: "selected", templateKey } : { state: "cleared" },
+    scope,
+  );
+}
+
+function getTemplateKeyFromState(record: TemplateDraftRecord | null, queryTemplateKey: string) {
+  if (record?.state === "selected") {
+    return record.templateKey;
+  }
+
+  if (record?.state === "cleared") {
+    return "";
+  }
+
+  return queryTemplateKey;
+}
+
 export function useGuildTemplateDraft(guildId: string, queryTemplateKey: string, scope = "guild") {
   const [templateKey, setTemplateKeyState] = useState(() => {
     if (!guildId) {
       return queryTemplateKey;
     }
 
-    return readGuildTemplateDraft(guildId, scope) || queryTemplateKey;
+    return getTemplateKeyFromState(readGuildTemplateDraftState(guildId, scope), queryTemplateKey);
   });
 
   useEffect(() => {
@@ -121,12 +176,12 @@ export function useGuildTemplateDraft(guildId: string, queryTemplateKey: string,
       return;
     }
 
-    const storedTemplateKey = readGuildTemplateDraft(guildId, scope);
-    const nextTemplateKey = storedTemplateKey || queryTemplateKey;
+    const storedDraft = readGuildTemplateDraftState(guildId, scope);
+    const nextTemplateKey = getTemplateKeyFromState(storedDraft, queryTemplateKey);
     setTemplateKeyState(currentTemplateKey => (currentTemplateKey === nextTemplateKey ? currentTemplateKey : nextTemplateKey));
 
-    if (!storedTemplateKey && queryTemplateKey) {
-      writeGuildTemplateDraft(guildId, queryTemplateKey, scope);
+    if (storedDraft === null && queryTemplateKey) {
+      writeGuildTemplateDraftState(guildId, { state: "selected", templateKey: queryTemplateKey }, scope);
     }
   }, [guildId, queryTemplateKey, scope]);
 
@@ -136,7 +191,7 @@ export function useGuildTemplateDraft(guildId: string, queryTemplateKey: string,
     }
 
     function handleDraftChange() {
-      const nextTemplateKey = readGuildTemplateDraft(guildId, scope) || queryTemplateKey;
+      const nextTemplateKey = getTemplateKeyFromState(readGuildTemplateDraftState(guildId, scope), queryTemplateKey);
       setTemplateKeyState(currentTemplateKey => (currentTemplateKey === nextTemplateKey ? currentTemplateKey : nextTemplateKey));
     }
 
@@ -145,11 +200,21 @@ export function useGuildTemplateDraft(guildId: string, queryTemplateKey: string,
 
   function setTemplateKey(nextTemplateKey: string) {
     setTemplateKeyState(nextTemplateKey);
-    writeGuildTemplateDraft(guildId, nextTemplateKey, scope);
+    writeGuildTemplateDraftState(
+      guildId,
+      nextTemplateKey ? { state: "selected", templateKey: nextTemplateKey } : { state: "cleared" },
+      scope,
+    );
+  }
+
+  function clearTemplateKey() {
+    setTemplateKeyState("");
+    writeGuildTemplateDraftState(guildId, { state: "cleared" }, scope);
   }
 
   return {
     templateKey,
     setTemplateKey,
+    clearTemplateKey,
   };
 }

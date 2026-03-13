@@ -341,6 +341,15 @@ function parseInteger(value: string | number | null | undefined, fallback = 0) {
   return fallback;
 }
 
+function parseJsonInput<T>(value: string) {
+  try {
+    return JSON.parse(value) as T;
+  } catch (error) {
+    console.error("Invalid JSON format.", error);
+    throw new Error("Invalid JSON format. Check commas, quotes, and brackets.");
+  }
+}
+
 function buildAutomodSummary(rule: AutomodRuleRecord) {
   switch (rule.triggerType) {
     case "keyword":
@@ -690,7 +699,7 @@ function useBotWorkspaceState(botId: string): SharedWorkspaceState {
     setBusyAction("overrides");
     setMessage(null);
     try {
-      const parsed = JSON.parse(overridesText) as Record<string, unknown>;
+      const parsed = parseJsonInput<Record<string, unknown>>(overridesText);
       await requestJson(`/api/bots/${botId}/overrides`, {
         method: "PUT",
         body: JSON.stringify({ featureOverrides: parsed }),
@@ -709,7 +718,7 @@ function useBotWorkspaceState(botId: string): SharedWorkspaceState {
     setBusyAction("ai");
     setMessage(null);
     try {
-      const parsedOptions = JSON.parse(aiForm.optionsText) as Record<string, unknown>;
+      const parsedOptions = parseJsonInput<Record<string, unknown>>(aiForm.optionsText);
       await requestJson(`/api/bots/${botId}/ai`, {
         method: "PUT",
         body: JSON.stringify({
@@ -741,7 +750,7 @@ function useBotWorkspaceState(botId: string): SharedWorkspaceState {
           name: templateForm.name,
           description: templateForm.description,
           channelId: templateForm.channelId.trim() || null,
-          payload: JSON.parse(templateForm.payloadText),
+          payload: parseJsonInput<Record<string, unknown>>(templateForm.payloadText),
         }),
       });
       await Promise.all([loadWorkspace(), refresh()]);
@@ -1242,8 +1251,8 @@ function TemplatesSection({
           .split(",")
           .map(tag => tag.trim())
           .filter(Boolean),
-        payload: JSON.parse(form.payloadText),
-        interactionSchema: JSON.parse(form.interactionText),
+        payload: parseJsonInput<Record<string, unknown>>(form.payloadText),
+        interactionSchema: parseJsonInput<Record<string, unknown>>(form.interactionText),
       };
 
       const next = selectedTemplateId
@@ -5197,7 +5206,7 @@ export function BotWorkspaceScreen({
     event.preventDefault();
     if (!currentModule || !workspace) return;
     try {
-      const parsed = JSON.parse(moduleOverrideText) as Record<string, unknown>;
+      const parsed = parseJsonInput<Record<string, unknown>>(moduleOverrideText);
       await requestJson(`/api/bots/${botId}/overrides`, {
         method: "PUT",
         body: JSON.stringify({

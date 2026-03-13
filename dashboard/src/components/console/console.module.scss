@@ -823,10 +823,19 @@ button.buttonDanger {
 
 .serverPickerHero .pageHeader {
   justify-content: center;
+  width: 100%;
 }
 
 .serverPickerHero .pageTitle {
+  max-width: min(100%, 18ch);
+  margin-inline: auto;
+  font-size: clamp(2rem, 3.6vw, 2.85rem);
+  line-height: 0.96;
   text-wrap: balance;
+}
+
+.serverPickerHero .inlineMeta {
+  justify-content: center;
 }
 
 .serverPickerSurface {
@@ -1667,6 +1676,7 @@ button.buttonDanger {
 }
 
 .backLink {
+  appearance: none;
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -1677,7 +1687,9 @@ button.buttonDanger {
   background: rgba(var(--accent-rgb), 0.08);
   color: var(--primary);
   font-weight: 700;
+  font: inherit;
   text-decoration: none;
+  cursor: pointer;
   transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
 }
 
@@ -2283,6 +2295,7 @@ button.buttonDanger {
 
   .serverPickerHero .inlineMeta {
     justify-content: center;
+    row-gap: 0.42rem;
   }
 
   .setupProgressRing {
@@ -2646,10 +2659,10 @@ button.buttonDanger {
   }
 
   .serverPickerHero .pageTitle {
-    max-width: 11ch;
+    max-width: 12ch;
     margin-inline: auto;
-    font-size: clamp(1.52rem, 7.2vw, 1.9rem);
-    line-height: 0.94;
+    font-size: clamp(1.44rem, 8vw, 1.92rem);
+    line-height: 0.96;
     letter-spacing: -0.06em;
   }
 
@@ -2707,6 +2720,14 @@ button.buttonDanger {
 
   .serverCopy {
     gap: 0.16rem;
+  }
+
+  .serverTitleRow {
+    gap: 0.38rem;
+  }
+
+  .serverTitleRow .chip {
+    max-width: 100%;
   }
 
   .serverTitleRow .cardTitle {

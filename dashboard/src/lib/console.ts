@@ -19,6 +19,11 @@ import {
   LuUsers,
   LuWandSparkles,
 } from "react-icons/lu";
+import {
+  getTemplateCatalogTemplate,
+  moduleDisplayOrder as templateCatalogModuleDisplayOrder,
+  moduleEntityLabels as templateCatalogModuleEntityLabels,
+} from "@/lib/templateCatalog";
 
 export type ModuleId =
   | "moderation"
@@ -929,73 +934,8 @@ const botModuleNavDefinitions: Partial<Record<ModuleId, BotModuleNavDefinition>>
   },
 };
 
-const moduleEntityLabels: Record<ModuleId, string> = {
-  moderation: "Moderation",
-  automod: "AutoMod",
-  autorole: "Auto Role",
-  roleCommands: "Role Commands",
-  reputation: "Reputation",
-  logs: "Logs",
-  notifications: "Notifications",
-  onboarding: "Onboarding",
-  verification: "Verification",
-  reactionRoles: "Reaction Roles",
-  tickets: "Ticketing",
-  modmail: "Modmail",
-  ai: "AI",
-  reminders: "Reminders",
-  rss: "RSS",
-  webhooks: "Webhooks",
-  componentsV2: "Message Studio",
-  musicVoice: "Music",
-  voiceRoles: "Voice Roles",
-  serverStats: "Server Stats",
-  feeds: "Feeds",
-  reddit: "Reddit",
-  twitch: "Twitch",
-  youtube: "YouTube",
-  streaming: "Streaming",
-  rsvp: "RSVP",
-  soundboard: "Soundboard",
-  customCommands: "Custom Commands",
-  premium: "Premium",
-  personalizer: "Personalizer",
-  utilities: "Utilities",
-};
-
-const moduleDisplayOrder: ModuleId[] = [
-  "moderation",
-  "automod",
-  "autorole",
-  "roleCommands",
-  "reputation",
-  "logs",
-  "notifications",
-  "onboarding",
-  "verification",
-  "reactionRoles",
-  "tickets",
-  "modmail",
-  "ai",
-  "reminders",
-  "rss",
-  "webhooks",
-  "componentsV2",
-  "musicVoice",
-  "voiceRoles",
-  "serverStats",
-  "feeds",
-  "reddit",
-  "twitch",
-  "youtube",
-  "streaming",
-  "rsvp",
-  "soundboard",
-  "customCommands",
-  "premium",
-  "personalizer",
-  "utilities",
-];
+const moduleEntityLabels = templateCatalogModuleEntityLabels as Record<ModuleId, string>;
+const moduleDisplayOrder = templateCatalogModuleDisplayOrder as ModuleId[];
 
 export function getTemplateDefinition(templates: TemplateDefinition[], templateKey: string) {
   return templates.find(template => template.key === templateKey) || null;
@@ -1010,6 +950,7 @@ export function buildGuildTemplateOverrides(
   template: TemplateDefinition,
   existingOverrides: Record<string, unknown> = {},
 ) {
+  const templateCatalog = getTemplateCatalogTemplate(template.key);
   const nextOverrides: Record<string, unknown> = {
     [GUILD_TEMPLATE_KEY_FIELD]: template.key,
   };
@@ -1023,7 +964,7 @@ export function buildGuildTemplateOverrides(
         : {};
 
     nextOverrides[moduleId] = {
-      enabled: Boolean(templateToggle?.enabled),
+      enabled: templateCatalog ? Boolean(templateCatalog.enabledModules[moduleId]) : Boolean(templateToggle?.enabled),
       settings: {
         ...(templateToggle?.settings ?? {}),
         ...existingSettings,
@@ -1091,11 +1032,13 @@ export function isBotWorkspaceSection(value: string): value is BotWorkspaceSecti
 
 export function getEnabledModules(template: TemplateDefinition | null, overrides: Record<string, unknown> = {}) {
   const templateDefaults = template?.defaults || {};
+  const templateCatalog = template ? getTemplateCatalogTemplate(template.key) : null;
   const merged = new Map<ModuleId, boolean>();
 
   for (const moduleId of moduleDisplayOrder) {
     const defaultToggle = templateDefaults[moduleId];
-    merged.set(moduleId, Boolean(defaultToggle?.enabled));
+    const defaultEnabled = templateCatalog ? Boolean(templateCatalog.enabledModules[moduleId]) : Boolean(defaultToggle?.enabled);
+    merged.set(moduleId, defaultEnabled);
   }
 
   for (const [moduleId, value] of Object.entries(overrides)) {

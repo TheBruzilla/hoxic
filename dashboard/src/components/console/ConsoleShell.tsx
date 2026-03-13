@@ -2,11 +2,31 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ReactNode, useEffect, useMemo, useState } from "react";
-import { LuArrowLeft } from "react-icons/lu";
-import { BotWorkspacePayload, appNavSections, displayName, getSelectedBotNavSections, requestJson } from "@/lib/console";
-import { buildFocusedBotsHref, buildSetupHref } from "@/app/app/setup/setup-helpers";
+import { LuArrowLeft, LuBoxes, LuLayoutDashboard, LuPanelLeft, LuWandSparkles } from "react-icons/lu";
+import {
+  BotWorkspacePayload,
+  ConsoleNavItem,
+  appNavSections,
+  displayName,
+  getBotWorkspaceHref,
+  getEnabledModuleCards,
+  getEnabledModuleEntities,
+  getGuildTemplateKey,
+  getSelectedBotNavSections,
+  getTemplateDefinition,
+  requestJson,
+} from "@/lib/console";
+import { useGuildTemplateDraft } from "@/lib/templateDraft";
+import {
+  buildFocusedBotsHref,
+  buildProvisionHref,
+  buildSetupHref,
+  buildTemplateSelectorHref,
+  findPrimaryBot,
+  findSecondaryBots,
+} from "@/app/app/setup/setup-helpers";
 import { useConsole } from "./ConsoleProvider";
 import { AuthGate, Badge } from "./ConsolePrimitives";
 import styles from "./console.module.scss";
@@ -27,10 +47,12 @@ function buildReturnPath(returnTo: string, templateKey?: string) {
 
 export function ConsoleShell({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "/app";
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [loggingOut, setLoggingOut] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [workspaceServerLabel, setWorkspaceServerLabel] = useState<string>("");
+  const [workspaceServerLabel, setWorkspaceServerLabel] = useState("");
+  const [workspacePayload, setWorkspacePayload] = useState<BotWorkspacePayload | null>(null);
   const { bootstrap, unauthorized } = useConsole();
 
   useEffect(() => {
@@ -43,55 +65,72 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
   const focusedGuildId = searchParams.get("guild") || "";
   const returnTo = searchParams.get("returnTo") || "";
   const selectedTemplateKey = searchParams.get("template") || "";
-  const templateSelectorGuildId = useMemo(() => {
-    if (!returnTo) return "";
+  const slotParam = searchParams.get("slot") || "";
+  const currentSlotIndex = slotParam ? Number.parseInt(slotParam, 10) : null;
+  const returnTarget = useMemo(() => {
+    if (!returnTo) {
+      return null;
+    }
+
     try {
-      return new URL(returnTo, "http://localhost").searchParams.get("guild") || "";
+      return new URL(returnTo, "http://localhost");
     } catch {
-      return "";
+      return null;
     }
   }, [returnTo]);
-  const focusedGuild = focusedGuildId
-    ? bootstrap?.manageableGuilds?.find(guild => guild.id === focusedGuildId) || null
-    : null;
-  const templateSelectorGuild = templateSelectorGuildId
-    ? bootstrap?.manageableGuilds?.find(guild => guild.id === templateSelectorGuildId) || null
-    : null;
+  const templateSelectorGuildId = returnTarget?.searchParams.get("guild") || "";
+  const returnSlotValue = returnTarget?.searchParams.get("slot") || "";
+  const templateSelectorSlotIndex = returnSlotValue ? Number.parseInt(returnSlotValue, 10) : null;
+  const flowGuildId = focusedGuildId || templateSelectorGuildId;
   const isServerDirectory = pathname === "/app";
   const isMainBotIndex = pathname === "/app/bots";
   const isBotWorkspace = pathname.startsWith("/app/bots/");
   const isGuildSetup = pathname === "/app/setup" && Boolean(focusedGuildId);
   const isFocusedSetup = pathname === "/app/setup/focused" && Boolean(focusedGuildId);
   const isProvisionPage = pathname === "/app/provision" && Boolean(focusedGuildId);
+  const isTemplateSelectorInFlow = isMainBotIndex && Boolean(returnTo) && Boolean(templateSelectorGuildId);
   const isHeaderlessRoute = false;
-  const showSidebar = !(
-    isServerDirectory ||
-    isMainBotIndex ||
-    isBotWorkspace ||
-    isGuildSetup ||
-    isFocusedSetup ||
-    isProvisionPage
-  );
+  const isFlowRoute = isGuildSetup || isFocusedSetup || isProvisionPage || isTemplateSelectorInFlow || (isBotWorkspace && Boolean(flowGuildId));
+  const showSidebar = !(isServerDirectory || (isMainBotIndex && !isTemplateSelectorInFlow));
   const currentBot = currentBotId ? bootstrap?.bots.find(item => item.id === currentBotId) || null : null;
   const currentHeartbeat = currentBot ? bootstrap?.heartbeats.find(item => item.botInstanceId === currentBot.id) || null : null;
+  const flowGuild = flowGuildId
+    ? bootstrap?.manageableGuilds?.find(guild => guild.id === flowGuildId) || null
+    : null;
+  const flowDraftScope = (() => {
+    if (isTemplateSelectorInFlow && Number.isInteger(templateSelectorSlotIndex)) {
+      return `slot-${templateSelectorSlotIndex}`;
+    }
+    if ((isFocusedSetup || isProvisionPage) && Number.isInteger(currentSlotIndex)) {
+      return `slot-${currentSlotIndex}`;
+    }
+    return "guild";
+  })();
+  const flowQueryTemplateKey = isTemplateSelectorInFlow ? selectedTemplateKey : searchParams.get("template") || "";
+  const { templateKey: flowDraftTemplateKey } = useGuildTemplateDraft(flowGuildId, flowQueryTemplateKey, flowDraftScope);
 
   useEffect(() => {
     let cancelled = false;
 
-    async function loadWorkspaceServerLabel() {
+    async function loadWorkspaceContext() {
       if (!currentBotId) {
+        setWorkspacePayload(null);
         setWorkspaceServerLabel("");
         return;
       }
 
       try {
         const payload = await requestJson<BotWorkspacePayload>(`/api/bots/${currentBotId}`);
-        if (cancelled) return;
+        if (cancelled) {
+          return;
+        }
+
+        setWorkspacePayload(payload);
 
         if (focusedGuildId) {
-          const focusedGuild = payload.guilds.find(guild => guild.id === focusedGuildId);
-          if (focusedGuild) {
-            setWorkspaceServerLabel(focusedGuild.name);
+          const matchedGuild = payload.guilds.find(guild => guild.id === focusedGuildId);
+          if (matchedGuild) {
+            setWorkspaceServerLabel(matchedGuild.name);
             return;
           }
         }
@@ -112,35 +151,210 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
         setWorkspaceServerLabel(remaining > 0 ? `${visible} +${remaining}` : visible);
       } catch {
         if (!cancelled) {
+          setWorkspacePayload(null);
           setWorkspaceServerLabel(currentBot?.name ?? "Unknown server");
         }
       }
     }
 
-    void loadWorkspaceServerLabel();
+    void loadWorkspaceContext();
 
     return () => {
       cancelled = true;
     };
   }, [currentBot?.name, currentBotId, focusedGuildId]);
+
+  const focusedGuildConfig = workspacePayload?.guildConfigs.find(configRecord => configRecord.guildId === focusedGuildId) || null;
+  const focusedGuildTemplateKey = getGuildTemplateKey(focusedGuildConfig?.overrides);
+  const flowPrimaryBot = flowGuild && bootstrap ? findPrimaryBot(bootstrap.bots, flowGuild) : null;
+  const flowSecondaryBots = flowGuild && bootstrap ? findSecondaryBots(bootstrap.bots, flowGuild) : [];
+  const requestedSlotIndex = isTemplateSelectorInFlow ? templateSelectorSlotIndex : currentSlotIndex;
+  const flowTemplateKey = isBotWorkspace
+    ? focusedGuildTemplateKey || currentBot?.templateKey || ""
+    : flowDraftTemplateKey || flowQueryTemplateKey;
+  const selectedSecondaryBot = typeof requestedSlotIndex === "number"
+    ? flowSecondaryBots[requestedSlotIndex] || null
+    : flowTemplateKey
+      ? flowSecondaryBots.find(bot => bot.templateKey === flowTemplateKey) || null
+      : null;
+  const flowTargetBot = isBotWorkspace
+    ? currentBot
+    : flowTemplateKey === "full-suite"
+      ? flowPrimaryBot
+      : selectedSecondaryBot || (isGuildSetup ? flowPrimaryBot : null);
+  const resolvedSlotIndex = flowTargetBot?.role === "secondary"
+    ? flowSecondaryBots.findIndex(bot => bot.id === flowTargetBot.id)
+    : -1;
+  const effectiveFlowSlotIndex = Number.isInteger(requestedSlotIndex) ? requestedSlotIndex : resolvedSlotIndex >= 0 ? resolvedSlotIndex : null;
+  const flowTemplate = flowTemplateKey
+    ? getTemplateDefinition(bootstrap?.templates || [], flowTemplateKey)
+    : flowTargetBot
+      ? getTemplateDefinition(bootstrap?.templates || [], flowTargetBot.templateKey)
+      : null;
+  const isFocusedFlow = Boolean(
+    (flowTemplateKey && flowTemplateKey !== "full-suite") ||
+    (flowTargetBot?.role === "secondary") ||
+    isFocusedSetup ||
+    (isTemplateSelectorInFlow && returnTarget?.pathname === "/app/setup/focused"),
+  );
+  const flowOverviewHref = flowGuildId
+    ? isFocusedFlow
+      ? buildFocusedBotsHref(flowGuildId, flowTemplateKey || undefined, effectiveFlowSlotIndex)
+      : buildSetupHref(flowGuildId, flowTemplateKey === "full-suite" ? flowTemplateKey : undefined)
+    : "";
+  const flowTemplateLibraryHref = flowOverviewHref
+    ? buildTemplateSelectorHref(flowOverviewHref, flowTemplateKey || undefined)
+    : "";
+  const flowProvisionHref = flowGuildId && flowTemplateKey
+    ? buildProvisionHref(flowGuildId, flowTemplateKey, isFocusedFlow ? effectiveFlowSlotIndex : undefined)
+    : "";
+  const flowWorkspaceHref = flowTargetBot
+    ? getBotWorkspaceHref(flowTargetBot.id, "overview", flowGuildId || undefined)
+    : "";
+  const flowEnabledModuleItems = useMemo(() => {
+    if (!bootstrap || !flowTemplate) {
+      return [] as ConsoleNavItem[];
+    }
+
+    if (flowTargetBot) {
+      return getEnabledModuleCards(
+        bootstrap.templates,
+        flowTargetBot,
+        flowGuildId || undefined,
+        isBotWorkspace ? focusedGuildConfig?.overrides : undefined,
+      ).map(card => ({
+        id: `flow-module-${card.id}`,
+        label: card.label,
+        href: card.href,
+        icon: card.icon,
+        exact: true,
+      }));
+    }
+
+    const moduleFallbackHref = flowProvisionHref || flowOverviewHref || flowTemplateLibraryHref;
+    return getEnabledModuleEntities(flowTemplate).map(entity => ({
+      id: `flow-module-${entity.id}`,
+      label: entity.label,
+      href: moduleFallbackHref,
+      icon: LuBoxes,
+      exact: false,
+    }));
+  }, [
+    bootstrap,
+    flowGuildId,
+    flowOverviewHref,
+    flowProvisionHref,
+    flowTargetBot,
+    flowTemplate,
+    flowTemplateLibraryHref,
+    focusedGuildConfig?.overrides,
+    isBotWorkspace,
+  ]);
   const workspaceLabel = currentBot
     ? workspaceServerLabel || `${currentHeartbeat?.guildCount || 0} servers`
     : isServerDirectory
       ? "Server Directory"
       : isMainBotIndex
-      ? templateSelectorGuild?.name || "Main Bot"
-      : isProvisionPage
-      ? focusedGuild?.name || "Provision"
-      : isFocusedSetup
-      ? focusedGuild?.name || "Focused Setup"
-      : isGuildSetup
-      ? focusedGuild?.name || "Server Setup"
-      : pathname.startsWith("/app/bots")
-      ? "Bot Fleet"
-      : "Global Fleet";
+        ? flowGuild?.name || "Main Bot"
+        : isProvisionPage
+          ? flowGuild?.name || "Provision"
+          : isFocusedSetup
+            ? flowGuild?.name || "Focused Setup"
+            : isGuildSetup
+              ? flowGuild?.name || "Server Setup"
+              : pathname.startsWith("/app/bots")
+                ? "Bot Fleet"
+                : "Global Fleet";
+  const flowNavSections = useMemo(() => {
+    if (!isFlowRoute || !flowGuildId || !flowOverviewHref) {
+      return [] as Array<{ label?: string; items: ConsoleNavItem[] }>;
+    }
+
+    const sections: Array<{ label?: string; items: ConsoleNavItem[] }> = [
+      {
+        label: "Overview",
+        items: [
+          {
+            id: "flow-overview",
+            label: flowGuild?.name || "Server overview",
+            href: flowOverviewHref,
+            icon: LuLayoutDashboard,
+            exact: true,
+          },
+        ],
+      },
+    ];
+
+    if (flowTemplateLibraryHref) {
+      sections.push({
+        label: "Template Library",
+        items: [
+          {
+            id: "flow-template-library",
+            label: flowTemplate?.name || "Choose template",
+            href: flowTemplateLibraryHref,
+            icon: LuWandSparkles,
+            exact: true,
+          },
+        ],
+      });
+    }
+
+    if (flowProvisionHref) {
+      sections.push({
+        label: "Provision",
+        items: [
+          {
+            id: "flow-provision",
+            label: "Provision canvas",
+            href: flowProvisionHref,
+            icon: LuPanelLeft,
+            exact: true,
+          },
+        ],
+      });
+    }
+
+    if (flowWorkspaceHref) {
+      sections.push({
+        label: "Workspace",
+        items: [
+          {
+            id: "flow-workspace",
+            label: flowTargetBot?.name || "Workspace",
+            href: flowWorkspaceHref,
+            icon: LuLayoutDashboard,
+            exact: true,
+          },
+        ],
+      });
+    }
+
+    if (flowEnabledModuleItems.length > 0) {
+      sections.push({
+        label: "Enabled Modules",
+        items: flowEnabledModuleItems,
+      });
+    }
+
+    return sections;
+  }, [
+    flowEnabledModuleItems,
+    flowGuild?.name,
+    flowGuildId,
+    flowOverviewHref,
+    flowProvisionHref,
+    isFlowRoute,
+    flowTargetBot?.name,
+    flowTemplate?.name,
+    flowTemplateLibraryHref,
+    flowWorkspaceHref,
+  ]);
   const navSections = useMemo(
-    () => [...appNavSections, ...getSelectedBotNavSections(bootstrap?.templates || [], currentBot, focusedGuildId || undefined)],
-    [bootstrap?.templates, currentBot, focusedGuildId],
+    () => isFlowRoute
+      ? flowNavSections
+      : [...appNavSections, ...getSelectedBotNavSections(bootstrap?.templates || [], currentBot, focusedGuildId || undefined)],
+    [bootstrap?.templates, currentBot, flowNavSections, focusedGuildId, isFlowRoute],
   );
   const activeNavId = useMemo(() => {
     let activeId = "";
@@ -161,38 +375,38 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
 
     return activeId;
   }, [navSections, pathname]);
-  const pageBackLink = useMemo(() => {
+  const pageBackAction = useMemo(() => {
     if (pathname === "/app/setup" && focusedGuildId) {
-      return { href: "/app", label: "Back to servers" };
+      return { fallbackHref: "/app", label: "Back to servers" };
     }
 
     if (pathname === "/app/setup/focused" && focusedGuildId) {
       return {
-        href: buildSetupHref(focusedGuildId, selectedTemplateKey || undefined),
+        fallbackHref: buildSetupHref(focusedGuildId, selectedTemplateKey || undefined),
         label: "Back to setup",
       };
     }
 
     if (pathname === "/app/provision" && focusedGuildId) {
       return {
-        href:
+        fallbackHref:
           selectedTemplateKey === "full-suite"
             ? buildSetupHref(focusedGuildId, selectedTemplateKey || undefined)
-            : buildFocusedBotsHref(focusedGuildId, selectedTemplateKey || undefined),
+            : buildFocusedBotsHref(focusedGuildId, selectedTemplateKey || undefined, Number.isInteger(currentSlotIndex) ? currentSlotIndex : undefined),
         label: "Back to setup",
       };
     }
 
     if (pathname === "/app/bots" && returnTo) {
-      return { href: buildReturnPath(returnTo, selectedTemplateKey || undefined), label: "Back to setup" };
+      return { fallbackHref: buildReturnPath(returnTo, selectedTemplateKey || undefined), label: "Back to setup" };
     }
 
     if (pathname === "/app/runtime" || pathname === "/app/operators" || pathname === "/app/plugins") {
-      return { href: "/app", label: "Back to servers" };
+      return { fallbackHref: "/app", label: "Back to servers" };
     }
 
     return null;
-  }, [focusedGuildId, pathname, returnTo, selectedTemplateKey]);
+  }, [currentSlotIndex, focusedGuildId, pathname, returnTo, selectedTemplateKey]);
 
   if (unauthorized) {
     return <AuthGate />;
@@ -200,7 +414,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
 
   return (
     <div
-      className={`${styles.shell} ${showSidebar ? "" : styles.shellNoSidebar} ${isProvisionPage ? styles.shellProvision : ""} ${isHeaderlessRoute ? styles.shellHeaderless : ""}`.trim()}
+      className={`${styles.shell} ${showSidebar ? "" : styles.shellNoSidebar} ${isHeaderlessRoute ? styles.shellHeaderless : ""}`.trim()}
     >
       {!isHeaderlessRoute ? (
         <section className={styles.topbar}>
@@ -332,12 +546,23 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
       ) : null}
 
       <main className={styles.main}>
-        {pageBackLink ? (
+        {pageBackAction ? (
           <div className={styles.pageBackRow}>
-            <Link href={pageBackLink.href} className={styles.backLink}>
+            <button
+              type="button"
+              className={styles.backLink}
+              onClick={() => {
+                if (typeof window !== "undefined" && window.history.length > 1) {
+                  router.back();
+                  return;
+                }
+
+                router.replace(pageBackAction.fallbackHref);
+              }}
+            >
               <LuArrowLeft className={styles.inlineIcon} />
-              {pageBackLink.label}
-            </Link>
+              {pageBackAction.label}
+            </button>
           </div>
         ) : null}
         {children}

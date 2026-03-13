@@ -7,7 +7,14 @@ import { EmptyState, SectionHeader } from "@/components/console/ConsolePrimitive
 import { useConsole } from "@/components/console/ConsoleProvider";
 import { buildGuildTemplateOverrides, getTemplateDefinition, requestJson } from "@/lib/console";
 import { useGuildTemplateDraft } from "@/lib/templateDraft";
-import { buildProvisionHref, buildTemplateSelectorHref } from "@/app/app/setup/setup-helpers";
+import {
+  buildProvisionHref,
+  buildTemplateSelectorHref,
+  findPrimaryBot,
+  findSecondaryBots,
+  resolveTemplateConfigureHref,
+  stripTemplateFromHref,
+} from "@/app/app/setup/setup-helpers";
 import styles from "@/components/console/console.module.scss";
 
 function BotsPageContent() {
@@ -30,18 +37,23 @@ function BotsPageContent() {
   const returnSlotIndex = returnSlotIndexValue ? Number.parseInt(returnSlotIndexValue, 10) : null;
   const isFocusedReturn = returnTarget?.pathname === "/app/setup/focused" && Number.isInteger(returnSlotIndex);
   const draftScope = isFocusedReturn && returnSlotIndex !== null ? `slot-${returnSlotIndex}` : "guild";
-  const { templateKey: lockedTemplateKey, setTemplateKey: setLockedTemplateKey } = useGuildTemplateDraft(
+  const {
+    templateKey: lockedTemplateKey,
+    setTemplateKey: setLockedTemplateKey,
+    clearTemplateKey,
+  } = useGuildTemplateDraft(
     returnGuildId,
     selectedTemplateKey,
     draftScope,
   );
 
   useEffect(() => {
-    if (!returnTo || !lockedTemplateKey || selectedTemplateKey === lockedTemplateKey) {
+    if (!returnTo || selectedTemplateKey === lockedTemplateKey) {
       return;
     }
 
-    const nextHref = buildTemplateSelectorHref(returnTo, lockedTemplateKey);
+    const nextReturnTo = lockedTemplateKey ? returnTo : stripTemplateFromHref(returnTo);
+    const nextHref = buildTemplateSelectorHref(nextReturnTo, lockedTemplateKey || undefined);
     router.replace(nextHref);
   }, [lockedTemplateKey, returnTo, router, selectedTemplateKey]);
 
@@ -92,12 +104,22 @@ function BotsPageContent() {
     ...templates.filter(template => template.key === "full-suite"),
     ...templates.filter(template => template.key !== "full-suite"),
   ];
-  const configureHref = isFocusedReturn
-    ? returnTo
-    : selectedTemplate && returnGuildId
-      ? buildProvisionHref(returnGuildId, selectedTemplate.key)
-      : "";
-  const mainBot = bootstrap.bots[0] || null;
+  const mainBot = targetGuild
+    ? findPrimaryBot(bootstrap.bots, targetGuild)
+    : bootstrap.bots.find(bot => bot.role === "primary") || null;
+  const secondaryBots = targetGuild ? findSecondaryBots(bootstrap.bots, targetGuild) : [];
+  const selectedFocusedBot = isFocusedReturn && returnSlotIndex !== null ? secondaryBots[returnSlotIndex] || null : null;
+  const configureFallbackHref = selectedTemplate && returnGuildId
+    ? buildProvisionHref(returnGuildId, selectedTemplate.key, isFocusedReturn ? returnSlotIndex : undefined)
+    : returnTo;
+  const configureHref = selectedTemplate
+    ? resolveTemplateConfigureHref({
+        templates,
+        bot: isFocusedReturn ? selectedFocusedBot : mainBot,
+        guildId: returnGuildId || undefined,
+        fallbackHref: configureFallbackHref,
+      })
+    : "";
 
   async function chooseTemplate(templateKey: string) {
     const nextTemplate = getTemplateDefinition(templates, templateKey);
@@ -121,7 +143,7 @@ function BotsPageContent() {
   }
 
   async function clearTemplateSelection() {
-    setLockedTemplateKey("");
+    clearTemplateKey();
 
     if (!isFocusedReturn && mainBot && returnGuildId) {
       await requestJson(`/api/bots/${mainBot.id}/guild-configs/${returnGuildId}`, {
@@ -133,7 +155,8 @@ function BotsPageContent() {
       await refresh();
     }
 
-    router.replace(buildTemplateSelectorHref(returnTo));
+    const nextReturnTo = stripTemplateFromHref(returnTo);
+    router.replace(buildTemplateSelectorHref(nextReturnTo));
   }
 
   return (

@@ -3,6 +3,9 @@ const backendOrigin =
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  experimental: {
+    externalDir: true,
+  },
   sassOptions: {
     compiler: "modern",
     silenceDeprecations: ["legacy-js-api"],
