@@ -9,6 +9,7 @@ import {
   BotWorkspacePayload,
   ConsoleNavItem,
   appNavSections,
+  buildModulesHref,
   displayName,
   getBotWorkspaceHref,
   getEnabledModuleCards,
@@ -28,6 +29,7 @@ import {
   findSecondaryBots,
 } from "@/app/app/setup/setup-helpers";
 import { useConsole } from "./ConsoleProvider";
+import { useGuildContext } from "./GuildContext";
 import { AuthGate, Badge } from "./ConsolePrimitives";
 import styles from "./console.module.scss";
 
@@ -54,6 +56,7 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
   const [workspaceServerLabel, setWorkspaceServerLabel] = useState("");
   const [workspacePayload, setWorkspacePayload] = useState<BotWorkspacePayload | null>(null);
   const { bootstrap, unauthorized } = useConsole();
+  const { selectedGuildId } = useGuildContext();
 
   useEffect(() => {
     setMobileNavOpen(false);
@@ -81,10 +84,16 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
   const templateSelectorGuildId = returnTarget?.searchParams.get("guild") || "";
   const returnSlotValue = returnTarget?.searchParams.get("slot") || "";
   const templateSelectorSlotIndex = returnSlotValue ? Number.parseInt(returnSlotValue, 10) : null;
+  const pathnameParts = pathname.split("/").filter(Boolean);
+  const routeModuleGuildId = pathnameParts.length >= 3 && pathnameParts[0] === "app" && pathnameParts[2] === "modules"
+    ? pathnameParts[1] || ""
+    : "";
   const flowGuildId = focusedGuildId || templateSelectorGuildId;
+  const contextualGuildId = routeModuleGuildId || flowGuildId || selectedGuildId;
   const isServerDirectory = pathname === "/app";
   const isMainBotIndex = pathname === "/app/bots";
   const isBotWorkspace = pathname.startsWith("/app/bots/");
+  const isModuleCenter = pathname === "/app/plugins" || (pathnameParts.length >= 3 && pathnameParts[0] === "app" && pathnameParts[2] === "modules");
   const isGuildSetup = pathname === "/app/setup" && Boolean(focusedGuildId);
   const isFocusedSetup = pathname === "/app/setup/focused" && Boolean(focusedGuildId);
   const isProvisionPage = pathname === "/app/provision" && Boolean(focusedGuildId);
@@ -96,6 +105,9 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
   const currentHeartbeat = currentBot ? bootstrap?.heartbeats.find(item => item.botInstanceId === currentBot.id) || null : null;
   const flowGuild = flowGuildId
     ? bootstrap?.manageableGuilds?.find(guild => guild.id === flowGuildId) || null
+    : null;
+  const moduleCenterGuild = contextualGuildId
+    ? bootstrap?.manageableGuilds?.find(guild => guild.id === contextualGuildId) || null
     : null;
   const flowDraftScope = (() => {
     if (isTemplateSelectorInFlow && Number.isInteger(templateSelectorSlotIndex)) {
@@ -256,6 +268,8 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
       ? "Server Directory"
       : isMainBotIndex
         ? flowGuild?.name || "Main Bot"
+        : isModuleCenter
+          ? moduleCenterGuild?.name || "Modules"
         : isProvisionPage
           ? flowGuild?.name || "Provision"
           : isFocusedSetup
@@ -350,12 +364,28 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
     flowTemplateLibraryHref,
     flowWorkspaceHref,
   ]);
-  const navSections = useMemo(
-    () => isFlowRoute
-      ? flowNavSections
-      : [...appNavSections, ...getSelectedBotNavSections(bootstrap?.templates || [], currentBot, focusedGuildId || undefined)],
-    [bootstrap?.templates, currentBot, flowNavSections, focusedGuildId, isFlowRoute],
-  );
+  const navSections = useMemo(() => {
+    if (isFlowRoute) {
+      return flowNavSections;
+    }
+
+    const baseSections = appNavSections.map(section => ({
+      ...section,
+      items: section.items.map(item => {
+        if (item.id !== "plugins") {
+          return item;
+        }
+
+        return {
+          ...item,
+          href: buildModulesHref(contextualGuildId || undefined),
+          exact: !contextualGuildId,
+        };
+      }),
+    }));
+
+    return [...baseSections, ...getSelectedBotNavSections(bootstrap?.templates || [], currentBot, focusedGuildId || undefined)];
+  }, [bootstrap?.templates, contextualGuildId, currentBot, flowNavSections, focusedGuildId, isFlowRoute]);
   const activeNavId = useMemo(() => {
     let activeId = "";
     let longestMatch = 0;
@@ -401,12 +431,12 @@ export function ConsoleShell({ children }: { children: ReactNode }) {
       return { fallbackHref: buildReturnPath(returnTo, selectedTemplateKey || undefined), label: "Back to setup" };
     }
 
-    if (pathname === "/app/runtime" || pathname === "/app/operators" || pathname === "/app/plugins") {
+    if (pathname === "/app/runtime" || pathname === "/app/operators" || pathname === "/app/plugins" || isModuleCenter) {
       return { fallbackHref: "/app", label: "Back to servers" };
     }
 
     return null;
-  }, [currentSlotIndex, focusedGuildId, pathname, returnTo, selectedTemplateKey]);
+  }, [currentSlotIndex, focusedGuildId, isModuleCenter, pathname, returnTo, selectedTemplateKey]);
 
   if (unauthorized) {
     return <AuthGate />;

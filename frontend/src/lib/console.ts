@@ -20,6 +20,7 @@ import {
   LuWandSparkles,
 } from "react-icons/lu";
 import {
+  getEnabledModulesForTemplateKey,
   getTemplateCatalogTemplate,
   moduleDisplayOrder as templateCatalogModuleDisplayOrder,
   moduleEntityLabels as templateCatalogModuleEntityLabels,
@@ -365,6 +366,66 @@ export interface RuntimeSnapshot {
     heaviestByMemoryBotId: string | null;
     heaviestByCpuBotId: string | null;
   };
+}
+
+export interface OpsShardSnapshotRecord {
+  gatewayInstanceId: string;
+  botInstanceId: string;
+  botName: string;
+  shardId: number;
+  status: string;
+  pingMs: number | null;
+  guildCount: number;
+  userCount: number;
+  heartbeatAt: number;
+  updatedAt: number;
+  stale: boolean;
+}
+
+export interface OpsBotShardSummary {
+  botInstanceId: string;
+  botName: string;
+  shardCount: number;
+  readyShardCount: number;
+  avgPingMs: number | null;
+  maxPingMs: number | null;
+  guildCount: number;
+  userCount: number;
+  latestHeartbeatAt: number | null;
+  staleShardCount: number;
+}
+
+export interface OpsStatsPayload {
+  enabled: boolean;
+  generatedAt: number;
+  staleAfterMs: number;
+  alerts?: OpsAlertRecord[];
+  totals: {
+    shardCount: number;
+    botCount: number;
+    readyShardCount: number;
+    staleShardCount: number;
+    avgPingMs: number | null;
+    maxPingMs: number | null;
+    guildCount: number;
+    userCount: number;
+  };
+  bots: OpsBotShardSummary[];
+  shards: OpsShardSnapshotRecord[];
+}
+
+export interface OpsAlertRecord {
+  key: string;
+  code: string;
+  severity: "warning" | "critical";
+  summary: string;
+  observed: string;
+  threshold: string;
+  runbookId: string;
+  runbookPath: string;
+  botInstanceId: string | null;
+  botName: string | null;
+  generatedAt: number;
 }
 
 export interface ManageableGuildRecord {
@@ -738,7 +799,7 @@ export const appNavSections: Array<{ label: string; items: ConsoleNavItem[] }> =
     items: [
       { id: "overview", label: "Servers", href: "/app", icon: LuHouse, exact: true },
       { id: "bots", label: "Main Bot", href: "/app/bots", icon: LuBot },
-      { id: "plugins", label: "Plugin Library", href: "/app/plugins", icon: LuBoxes },
+      { id: "plugins", label: "Modules", href: "/app/plugins", icon: LuBoxes },
       { id: "runtime", label: "Runtime", href: "/app/runtime", icon: LuActivity },
       { id: "operators", label: "Operators", href: "/app/operators", icon: LuUsers },
     ],
@@ -951,6 +1012,7 @@ export function buildGuildTemplateOverrides(
   existingOverrides: Record<string, unknown> = {},
 ) {
   const templateCatalog = getTemplateCatalogTemplate(template.key);
+  const enabledModuleIds = new Set(templateCatalog?.moduleIds || []);
   const nextOverrides: Record<string, unknown> = {
     [GUILD_TEMPLATE_KEY_FIELD]: template.key,
   };
@@ -964,7 +1026,7 @@ export function buildGuildTemplateOverrides(
         : {};
 
     nextOverrides[moduleId] = {
-      enabled: templateCatalog ? Boolean(templateCatalog.enabledModules[moduleId]) : Boolean(templateToggle?.enabled),
+      enabled: templateCatalog ? enabledModuleIds.has(moduleId) : Boolean(templateToggle?.enabled),
       settings: {
         ...(templateToggle?.settings ?? {}),
         ...existingSettings,
@@ -982,6 +1044,18 @@ export function getBotWorkspaceHref(botId: string, section: BotWorkspaceSection,
   }
 
   return `${href}?guild=${encodeURIComponent(guildId)}`;
+}
+
+export function buildModulesHref(guildId?: string) {
+  if (!guildId) {
+    return "/app/plugins";
+  }
+
+  return `/app/${encodeURIComponent(guildId)}/modules`;
+}
+
+export function getModuleWorkspaceSection(moduleId: ModuleId): BotWorkspaceSection | null {
+  return botModuleNavDefinitions[moduleId]?.section || null;
 }
 
 export function getSharedBotInviteHref(applicationId: string, guildId?: string) {
@@ -1032,12 +1106,12 @@ export function isBotWorkspaceSection(value: string): value is BotWorkspaceSecti
 
 export function getEnabledModules(template: TemplateDefinition | null, overrides: Record<string, unknown> = {}) {
   const templateDefaults = template?.defaults || {};
-  const templateCatalog = template ? getTemplateCatalogTemplate(template.key) : null;
+  const enabledModuleIds = new Set(template ? getEnabledModulesForTemplateKey(template.key) : []);
   const merged = new Map<ModuleId, boolean>();
 
   for (const moduleId of moduleDisplayOrder) {
     const defaultToggle = templateDefaults[moduleId];
-    const defaultEnabled = templateCatalog ? Boolean(templateCatalog.enabledModules[moduleId]) : Boolean(defaultToggle?.enabled);
+    const defaultEnabled = enabledModuleIds.size > 0 ? enabledModuleIds.has(moduleId) : Boolean(defaultToggle?.enabled);
     merged.set(moduleId, defaultEnabled);
   }
 

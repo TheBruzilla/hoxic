@@ -1,9 +1,33 @@
 "use client";
 
 import Link from "next/link";
-import { ReactNode } from "react";
+import { ElementType, ReactNode } from "react";
 import { LuActivity, LuBot, LuLogIn, LuShieldCheck } from "react-icons/lu";
 import styles from "./console.module.scss";
+
+export function GlassPanel({
+  as: Component = "section",
+  children,
+  className = "",
+}: {
+  as?: ElementType;
+  children: ReactNode;
+  className?: string;
+}) {
+  return <Component className={`${styles.pageSurface} ${className}`.trim()}>{children}</Component>;
+}
+
+export function GlassCard({
+  as: Component = "article",
+  children,
+  className = "",
+}: {
+  as?: ElementType;
+  children: ReactNode;
+  className?: string;
+}) {
+  return <Component className={`${styles.card} ${className}`.trim()}>{children}</Component>;
+}
 
 export function SectionHeader({
   eyebrow,
@@ -82,6 +106,45 @@ export function EmptyState({
       <strong>{title}</strong>
       <p className={styles.pageText}>{description}</p>
       {action}
+    </div>
+  );
+}
+
+export function StickySaveBar({
+  dirty,
+  busy = false,
+  saveLabel,
+  idleLabel = "Unsaved changes",
+  busyLabel = "Saving changes…",
+  onReset,
+}: {
+  dirty: boolean;
+  busy?: boolean;
+  saveLabel: string;
+  idleLabel?: string;
+  busyLabel?: string;
+  onReset?: () => void;
+}) {
+  if (!dirty) {
+    return null;
+  }
+
+  return (
+    <div className={styles.stickySaveBar}>
+      <div className={styles.stickySaveCopy}>
+        <strong>{busy ? busyLabel : idleLabel}</strong>
+        <span>Review the current draft and apply it when you are ready.</span>
+      </div>
+      <div className={styles.cardActions}>
+        {onReset ? (
+          <button type="button" className={styles.buttonSecondary} onClick={onReset} disabled={busy}>
+            Reset
+          </button>
+        ) : null}
+        <button type="submit" className={styles.button} disabled={busy}>
+          {busy ? "Saving…" : saveLabel}
+        </button>
+      </div>
     </div>
   );
 }

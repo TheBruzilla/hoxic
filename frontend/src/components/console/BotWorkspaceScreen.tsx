@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Badge, EmptyState, SectionHeader } from "@/components/console/ConsolePrimitives";
+import { Badge, EmptyState, SectionHeader, StickySaveBar } from "@/components/console/ConsolePrimitives";
 import { useConsole } from "@/components/console/ConsoleProvider";
+import { useDashboardFeedback } from "@/components/console/DashboardFeedback";
 import {
   AutomodActionType,
   AutomodRuleRecord,
@@ -380,6 +381,36 @@ function ModuleMessage({ message }: { message: string | null }) {
   return <div className={styles.callout}>{message}</div>;
 }
 
+function serializeDraftState(value: unknown) {
+  return JSON.stringify(value);
+}
+
+function useToastForMessage(message: string | null, successTitle: string) {
+  const { pushToast } = useDashboardFeedback();
+  const lastMessageRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!message) {
+      lastMessageRef.current = null;
+      return;
+    }
+
+    if (message === lastMessageRef.current || message.startsWith("Loading ")) {
+      return;
+    }
+
+    lastMessageRef.current = message;
+    const lower = message.toLowerCase();
+    const isError = lower.includes("failed") || lower.includes("unable") || lower.includes("warning");
+
+    pushToast({
+      title: isError ? "Action needs attention" : successTitle,
+      description: message,
+      tone: isError ? "danger" : "success",
+    });
+  }, [message, pushToast, successTitle]);
+}
+
 function GuildSelector({
   guilds,
   selectedGuildId,
@@ -422,6 +453,8 @@ function useGuildModuleScope({
   const [resourcesLoading, setResourcesLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  useToastForMessage(message, "Module updated");
 
   useEffect(() => {
     if (guilds.length === 0) {
@@ -594,6 +627,7 @@ function useBotWorkspaceState(botId: string): SharedWorkspaceState {
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState<string | null>(null);
   const [busyAction, setBusyAction] = useState<string | null>(null);
+  useToastForMessage(message, "Workspace updated");
   const [settingsForm, setSettingsForm] = useState({
     name: "",
     templateKey: "",
@@ -1293,7 +1327,11 @@ function TemplatesSection({
   }
 
   async function shareLayout() {
-    if (!selectedTemplateId) return;
+    if (!selectedTemplateId || !selectedTemplate) return;
+    if (selectedTemplate.status !== "published") {
+      setMessage("Publish layout before creating a share link.");
+      return;
+    }
     setBusy("share");
     setMessage(null);
     try {
@@ -1512,8 +1550,13 @@ function TemplatesSection({
                 <button type="button" className={styles.buttonSecondary} onClick={publishLayout} disabled={busy === "publish"}>
                   {busy === "publish" ? "Publishing…" : "Publish"}
                 </button>
-                <button type="button" className={styles.buttonSecondary} onClick={shareLayout} disabled={busy === "share"}>
-                  {busy === "share" ? "Sharing…" : "Create share link"}
+                <button
+                  type="button"
+                  className={styles.buttonSecondary}
+                  onClick={shareLayout}
+                  disabled={busy === "share" || selectedTemplate.status !== "published"}
+                >
+                  {selectedTemplate.status !== "published" ? "Publish first" : busy === "share" ? "Sharing…" : "Create share link"}
                 </button>
                 <button type="button" className={styles.buttonSecondary} onClick={deleteLayout} disabled={busy === "delete"}>
                   {busy === "delete" ? "Deleting…" : "Delete"}
@@ -2087,6 +2130,16 @@ function ModerationModuleSection({
     });
   }, [scope.moduleState.enabled, scope.moduleState.settings]);
 
+  const moderationBaseline = useMemo(
+    () => serializeDraftState({
+      enabled: scope.moduleState.enabled,
+      warnDmUser: Boolean(scope.moduleState.settings.warnDmUser),
+      defaultTimeoutMinutes: String(parseNumber(scope.moduleState.settings.defaultTimeoutMinutes, 30)),
+    }),
+    [scope.moduleState.enabled, scope.moduleState.settings],
+  );
+  const moderationDirty = moderationBaseline !== serializeDraftState(form);
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     await scope.saveModule(
@@ -2141,11 +2194,18 @@ function ModerationModuleSection({
           </div>
           {scope.resourcesLoading ? <ModuleMessage message="Loading guild channels and roles…" /> : null}
           <ModuleMessage message={scope.message} />
-          <div className={styles.cardActions}>
-            <button type="submit" className={styles.button} disabled={scope.busy}>
-              {scope.busy ? "Saving…" : "Save moderation settings"}
-            </button>
-          </div>
+          <StickySaveBar
+            dirty={moderationDirty}
+            busy={scope.busy}
+            saveLabel="Save moderation settings"
+            onReset={() =>
+              setForm({
+                enabled: scope.moduleState.enabled,
+                warnDmUser: Boolean(scope.moduleState.settings.warnDmUser),
+                defaultTimeoutMinutes: String(parseNumber(scope.moduleState.settings.defaultTimeoutMinutes, 30)),
+              })
+            }
+          />
         </form>
       </section>
 
@@ -2334,6 +2394,16 @@ function AutomodModuleSection({
     });
   }, [scope.moduleState.enabled, scope.moduleState.settings]);
 
+  const automodBaseline = useMemo(
+    () => serializeDraftState({
+      enabled: scope.moduleState.enabled,
+      notifyUser: Boolean(scope.moduleState.settings.notifyUser ?? false),
+      ignoreAdmins: Boolean(scope.moduleState.settings.ignoreAdmins ?? true),
+    }),
+    [scope.moduleState.enabled, scope.moduleState.settings],
+  );
+  const automodDirty = automodBaseline !== serializeDraftState(settingsForm);
+
   function resetRuleForm() {
     setEditingRuleId(null);
     setRuleForm({
@@ -2511,11 +2581,18 @@ function AutomodModuleSection({
             </label>
           </div>
           <ModuleMessage message={scope.message} />
-          <div className={styles.cardActions}>
-            <button type="submit" className={styles.button} disabled={scope.busy}>
-              {scope.busy ? "Saving…" : "Save automod settings"}
-            </button>
-          </div>
+          <StickySaveBar
+            dirty={automodDirty}
+            busy={scope.busy}
+            saveLabel="Save automod settings"
+            onReset={() =>
+              setSettingsForm({
+                enabled: scope.moduleState.enabled,
+                notifyUser: Boolean(scope.moduleState.settings.notifyUser ?? false),
+                ignoreAdmins: Boolean(scope.moduleState.settings.ignoreAdmins ?? true),
+              })
+            }
+          />
         </form>
       </section>
 
@@ -3027,6 +3104,17 @@ function OnboardingModuleSection({
     });
   }, [scope.moduleState.enabled, scope.moduleState.settings]);
 
+  const onboardingBaseline = useMemo(
+    () => serializeDraftState({
+      enabled: scope.moduleState.enabled,
+      welcomeChannelId: String(scope.moduleState.settings.welcomeChannelId ?? ""),
+      welcomeMessage: String(scope.moduleState.settings.welcomeMessage ?? "Welcome {userMention} to **{guildName}**."),
+      sendWelcomeDm: Boolean(scope.moduleState.settings.sendWelcomeDm ?? false),
+    }),
+    [scope.moduleState.enabled, scope.moduleState.settings],
+  );
+  const onboardingDirty = onboardingBaseline !== serializeDraftState(settingsForm);
+
   async function saveSettings(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     await scope.saveModule(
@@ -3071,11 +3159,19 @@ function OnboardingModuleSection({
           Send welcome DM
         </label>
         <ModuleMessage message={scope.message} />
-        <div className={styles.cardActions}>
-          <button type="submit" className={styles.button} disabled={scope.busy}>
-            {scope.busy ? "Saving…" : "Save onboarding settings"}
-          </button>
-        </div>
+        <StickySaveBar
+          dirty={onboardingDirty}
+          busy={scope.busy}
+          saveLabel="Save onboarding settings"
+          onReset={() =>
+            setSettingsForm({
+              enabled: scope.moduleState.enabled,
+              welcomeChannelId: String(scope.moduleState.settings.welcomeChannelId ?? ""),
+              welcomeMessage: String(scope.moduleState.settings.welcomeMessage ?? "Welcome {userMention} to **{guildName}**."),
+              sendWelcomeDm: Boolean(scope.moduleState.settings.sendWelcomeDm ?? false),
+            })
+          }
+        />
       </form>
     </section>
   );
@@ -5086,6 +5182,12 @@ function SimpleGuildModuleSection({
     setValues(scope.moduleState.settings);
   }, [scope.moduleState.enabled, scope.moduleState.settings]);
 
+  const sharedModuleBaseline = useMemo(
+    () => serializeDraftState({ enabled: scope.moduleState.enabled, values: scope.moduleState.settings }),
+    [scope.moduleState.enabled, scope.moduleState.settings],
+  );
+  const sharedModuleDirty = sharedModuleBaseline !== serializeDraftState({ enabled, values });
+
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     await scope.saveModule(enabled, settingsFactory(values), `${title} saved.`);
@@ -5104,11 +5206,15 @@ function SimpleGuildModuleSection({
         </div>
         {fields({ scope, values, setValues })}
         <ModuleMessage message={scope.message} />
-        <div className={styles.cardActions}>
-          <button type="submit" className={styles.button} disabled={scope.busy}>
-            {scope.busy ? "Saving…" : saveLabel}
-          </button>
-        </div>
+        <StickySaveBar
+          dirty={sharedModuleDirty}
+          busy={scope.busy}
+          saveLabel={saveLabel}
+          onReset={() => {
+            setEnabled(scope.moduleState.enabled);
+            setValues(scope.moduleState.settings);
+          }}
+        />
       </form>
     </section>
   );
@@ -5123,6 +5229,7 @@ export function BotWorkspaceScreen({
 }) {
   const searchParams = useSearchParams();
   const { bootstrap, refresh } = useConsole();
+  const { pushToast } = useDashboardFeedback();
   const templates = bootstrap?.templates || [];
   const state = useBotWorkspaceState(botId);
   const {
@@ -5217,8 +5324,17 @@ export function BotWorkspaceScreen({
         }),
       });
       await Promise.all([state.loadWorkspace(), refresh()]);
+      pushToast({
+        title: "Module override saved",
+        description: "The focused module override was applied to this bot workspace.",
+        tone: "success",
+      });
     } catch (error) {
-      window.alert(error instanceof Error ? error.message : "Failed to save module override.");
+      pushToast({
+        title: "Override save failed",
+        description: error instanceof Error ? error.message : "Failed to save module override.",
+        tone: "danger",
+      });
     }
   }
 

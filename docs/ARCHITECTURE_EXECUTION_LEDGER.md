@@ -117,6 +117,7 @@ If code conflicts with this baseline, log the conflict under batch `Drift Notes`
 9. `4A` to `4C` -> Telemetry/Ops ingestion, APIs, and alerting.
 10. `5A` to `5C` -> Discord provider abstraction and safe cutover.
 11. `6A` to `6C` -> legacy cleanup, hardening, and closure.
+12. `F0` to `F7` -> frontend-first product activation (glass UX system, modules center, template studio, runtime polish, premium surfaces, public/docs refresh).
 
 ## Live / Cutover Matrix
 
@@ -161,6 +162,8 @@ Status values: `Planned`, `In Progress`, `Completed`, `Blocked`, `Rolled Back`
 | `6A` | `6` | Legacy SQLite ownership reduction | `Completed` | repos/data access/migration cleanup | No unsafe destructive deletion | Target contexts no longer primary-write SQLite | `backend/packages/shared/src/config.ts`, `backend/.env.example`, `backend/apps/control-plane/src/ops/application/shard-heartbeat-ingestion.service.ts`, `backend/apps/control-plane/src/ops/application/shard-heartbeat-ingestion.service.test.ts`, `backend/apps/control-plane/src/ops/application/ops-stats-read.service.ts`, `backend/apps/control-plane/src/ops/application/ops-stats-read.service.test.ts`, `backend/apps/control-plane/src/ops/infrastructure/repositories/ops-shard-stats.repository.ts`, `backend/apps/control-plane/src/ops/index.ts`, `backend/apps/control-plane/src/server.ts`, `backend/apps/control-plane/src/doctor.ts`, `docs/ARCHITECTURE_EXECUTION_LEDGER.md` | `backend` `typecheck`, `test`, `doctor`, `check:catalog-sync` pass | No drift. Scope limited to ops shard-stats persistence ownership reduction with rollback-safe SQLite mode. |
 | `6B` | `6` | Hardening/perf/failure drills | `Completed` | targeted queue/ops/template/provider hardening drills + observability checks | No contract breaks | Targeted failure/rollback/fallback drills pass in automated validation; staging SLO soak remains a final-readiness item | `backend/apps/worker/src/role-sync/application/role-sync-queue-dispatch.service.test.ts`, `backend/apps/worker/src/role-sync/application/role-sync-queue-processor.test.ts`, `backend/apps/control-plane/src/ops/infrastructure/repositories/ops-shard-stats.repository.test.ts`, `backend/apps/control-plane/src/ops/application/ops-alert-dispatch.service.test.ts`, `backend/apps/control-plane/src/ops/application/ops-alert-evaluator.service.test.ts`, `backend/apps/control-plane/src/templates/application/template-lifecycle.test.ts`, `backend/packages/shared/src/config.test.ts`, `docs/ARCHITECTURE_EXECUTION_LEDGER.md` | `backend` `typecheck`, `test` (`67/67`), `doctor`, `check:catalog-sync` pass | No drift. Scope limited to hardening drills/tests; no route/API/schema/flag-default/runtime cutover changes. |
 | `6C` | `6` | Final readiness + closure | `Completed` | docs/runbooks/release checklist + closure sign-off | Maintain rollback and auditability | Final sign-off published with residual risks and rollback controls | `docs/operations/FINAL_READINESS_SIGNOFF_2026-03-14.md`, `docs/operations/deployment-checklist.md`, `docs/README.md`, `docs/TECHNICAL_HANDOFF_2026-03-13.md`, `docs/ARCHITECTURE_EXECUTION_LEDGER.md` | `backend` `typecheck`, `test` (`67/67`), `doctor`, `check:catalog-sync`; `frontend` `typecheck` pass | No drift. Closure is documentation/governance hardening only; runtime/routes/schema/flag defaults unchanged. |
+| `F0` | `Frontend` | UX foundation and glassmorphic system | `Completed` | `frontend/src/components/console/**`, `frontend/src/app/app/layout.tsx`, shared frontend styling | Keep backend APIs/routes unchanged; additive frontend only | Guild-aware frontend context exists, dashboard toasts exist, sticky save/apply UX is reusable, no raw `window.alert` remains in frontend | `frontend/src/app/app/layout.tsx`, `frontend/src/components/console/GuildContext.tsx`, `frontend/src/components/console/DashboardFeedback.tsx`, `frontend/src/components/console/ConsolePrimitives.tsx`, `frontend/src/components/console/console.module.scss`, `frontend/src/components/console/BotWorkspaceScreen.tsx` | `frontend` `typecheck`; `frontend` `build` | No drift. Shared frontend UX layer added without backend/API/schema changes. |
+| `F1` | `Frontend` | Modules Center replaces static plugin library | `Completed` | `frontend/src/app/app/plugins/**`, `frontend/src/app/app/[guildId]/modules/**`, `frontend/src/components/console/**`, `frontend/src/lib/**`, app shell/nav | Keep canonical module truth in `frontend/shared/template-catalog.json`; no backend contract changes | Server-aware modules center exists, `/app/[guildId]/modules` route exists, `/app/plugins` becomes module picker/alias, module cards derive from canonical registry + live guild state, module quick actions are navigable | `frontend/src/app/app/plugins/PluginsPageClient.tsx`, `frontend/src/app/app/[guildId]/modules/page.tsx`, `frontend/src/components/console/ModulesCenterScreen.tsx`, `frontend/src/components/console/ConsoleShell.tsx`, `frontend/src/app/app/page.tsx`, `frontend/src/lib/console.ts`, `frontend/src/lib/moduleCatalog.ts`, `docs/ARCHITECTURE_EXECUTION_LEDGER.md` | `frontend` `typecheck`; `frontend` `build` | No drift. UI no longer depends on the old hardcoded plugin page for primary module discovery; canonical registry remains the source of truth. |
 
 ## Completed Batch Notes
 
@@ -697,6 +700,44 @@ Status values: `Planned`, `In Progress`, `Completed`, `Blocked`, `Rolled Back`
 - Follow-up notes / risks:
   - residual risks are intentionally logged and accepted in `docs/operations/FINAL_READINESS_SIGNOFF_2026-03-14.md`.
   - role-sync queue durability and real Postgres fault-injection remain post-closure operational hardening items.
+
+### F0
+
+- What was done: added the shared frontend guild context, dashboard toast stack, glass-panel utility primitives, and reusable sticky save/apply bar; removed the remaining raw `window.alert` from the workspace flow.
+- What files changed:
+  - `frontend/src/app/app/layout.tsx`
+  - `frontend/src/components/console/GuildContext.tsx`
+  - `frontend/src/components/console/DashboardFeedback.tsx`
+  - `frontend/src/components/console/ConsolePrimitives.tsx`
+  - `frontend/src/components/console/console.module.scss`
+  - `frontend/src/components/console/BotWorkspaceScreen.tsx`
+- What was intentionally not changed: backend APIs/routes, database/schema behavior, template lifecycle contracts, and non-frontend deployment logic.
+- Validation results:
+  - `cd frontend && npm run typecheck` passed
+  - `cd frontend && npm run build` passed
+- Follow-up notes / risks:
+  - sticky save/apply UX is now reusable and wired into shared/simple module forms plus the first moderation/onboarding/automod settings flows, but not every workspace surface has been migrated yet.
+  - message banners remain in place for continuity; toasts were added as the new visible feedback layer rather than removing all inline feedback in one batch.
+
+### F1
+
+- What was done: replaced the static plugin-library experience with a real modules center driven by canonical module truth plus live guild/bot state, added the dedicated `/app/[guildId]/modules` route, and retargeted connected server entry points toward module management.
+- What files changed:
+  - `frontend/src/app/app/plugins/PluginsPageClient.tsx`
+  - `frontend/src/app/app/[guildId]/modules/page.tsx`
+  - `frontend/src/components/console/ModulesCenterScreen.tsx`
+  - `frontend/src/components/console/ConsoleShell.tsx`
+  - `frontend/src/app/app/page.tsx`
+  - `frontend/src/lib/console.ts`
+  - `frontend/src/lib/moduleCatalog.ts`
+  - `docs/ARCHITECTURE_EXECUTION_LEDGER.md`
+- What was intentionally not changed: backend contracts, canonical template/module ownership, existing workspace routes, and template publish/version lifecycle behavior.
+- Validation results:
+  - `cd frontend && npm run typecheck` passed
+  - `cd frontend && npm run build` passed
+- Follow-up notes / risks:
+  - quick actions currently deep-link to existing workspace sections; dedicated per-module config routes remain a follow-on frontend batch.
+  - module configuration status is intentionally conservative and only shown when current workspace data makes it defensible.
 
 ## Batch Update Protocol (Strict)
 

@@ -599,6 +599,42 @@ button.buttonDanger {
   gap: 1.1rem;
 }
 
+.stickySaveBar {
+  position: sticky;
+  bottom: 0.35rem;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.95rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(var(--accent-rgb), 0.22);
+  background:
+    linear-gradient(145deg, rgba(var(--accent-rgb), 0.14), rgba(255, 255, 255, 0.04)),
+    rgba(7, 16, 26, 0.82);
+  box-shadow:
+    0 18px 42px rgba(2, 8, 23, 0.26),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(22px) saturate(1.12);
+  -webkit-backdrop-filter: blur(22px) saturate(1.12);
+}
+
+.stickySaveCopy {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.stickySaveCopy strong {
+  color: #f6fbff;
+}
+
+.stickySaveCopy span {
+  color: var(--text-muted);
+  font-size: var(--type-sm);
+}
+
 .pageHeader {
   display: flex;
   justify-content: space-between;
@@ -781,6 +817,185 @@ button.buttonDanger {
 .button.pluginLibraryAction:hover,
 .buttonSecondary.pluginLibraryAction:hover {
   box-shadow: none;
+}
+
+.moduleCenterGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.moduleCenterCard {
+  gap: 0.95rem;
+  align-content: start;
+}
+
+.moduleCenterHeader {
+  display: grid;
+  gap: 0.72rem;
+}
+
+.moduleCenterCopy {
+  display: grid;
+  gap: 0.32rem;
+}
+
+.moduleCenterOutcome {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--type-sm);
+  line-height: 1.58;
+}
+
+.moduleCenterSummary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.moduleCenterStat {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.85rem 0.9rem;
+  border-radius: 0.95rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.moduleCenterStat strong {
+  font-size: var(--type-md);
+  color: #f6fbff;
+}
+
+.moduleCenterStat span {
+  color: var(--text-muted);
+  font-size: var(--type-xs);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.moduleStatusRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.moduleServerGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.moduleServerCard {
+  gap: 0.75rem;
+}
+
+.moduleServerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+}
+
+.moduleWarning {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.95rem 1rem;
+  border-radius: 0.95rem;
+  border: 1px solid rgba(255, 199, 117, 0.18);
+  background: rgba(255, 199, 117, 0.08);
+  color: #f8e2b0;
+}
+
+.toastStack {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 30;
+  display: grid;
+  gap: 0.75rem;
+  width: min(100vw - 2rem, 24rem);
+  pointer-events: none;
+}
+
+.toastCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.8rem;
+  align-items: start;
+  padding: 0.95rem 1rem;
+  border-radius: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)),
+    rgba(7, 16, 26, 0.92);
+  box-shadow:
+    0 22px 48px rgba(2, 8, 23, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px) saturate(1.12);
+  -webkit-backdrop-filter: blur(20px) saturate(1.12);
+  pointer-events: auto;
+}
+
+.toastInfo {
+  border-color: rgba(var(--accent-rgb), 0.24);
+}
+
+.toastSuccess {
+  border-color: rgba(92, 223, 173, 0.24);
+}
+
+.toastDanger {
+  border-color: rgba(255, 127, 134, 0.24);
+}
+
+.toastIconWrap {
+  width: 2rem;
+  height: 2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.72rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--primary);
+}
+
+.toastDanger .toastIconWrap {
+  color: #ffd0d4;
+}
+
+.toastSuccess .toastIconWrap {
+  color: #9af3c7;
+}
+
+.toastCopy {
+  display: grid;
+  gap: 0.22rem;
+  min-width: 0;
+}
+
+.toastCopy strong {
+  color: #f8fbff;
+  line-height: 1.2;
+}
+
+.toastCopy p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--type-sm);
+  line-height: 1.5;
+}
+
+.toastDismiss {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.toastDismiss:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
 }
 
 .botGrid {
@@ -2165,7 +2380,9 @@ button.buttonDanger {
   .statsGrid,
   .quickGrid,
   .pluginGrid,
+  .moduleCenterGrid,
   .botGrid,
+  .moduleServerGrid,
   .serverGrid,
   .setupShell,
   .provisionShell,
@@ -2649,6 +2866,10 @@ button.buttonDanger {
     margin: 0 auto;
   }
 
+  .stickySaveBar {
+    align-items: stretch;
+  }
+
   .serverGrid {
     width: 100%;
     gap: 0.72rem;
@@ -2674,6 +2895,12 @@ button.buttonDanger {
   .serverPickerHero .inlineMeta {
     justify-content: center;
     gap: 0.38rem;
+  }
+
+  .toastStack {
+    left: 1rem;
+    right: 1rem;
+    width: auto;
   }
 
   .serverPickerHero .chip {

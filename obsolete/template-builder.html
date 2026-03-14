@@ -1,0 +1,492 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Template Ground Truth Mapper</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg: #08131d;
+        --panel: #102130;
+        --panel-2: #0d1a27;
+        --border: #244057;
+        --text: #e8f4fb;
+        --muted: #9ab6c7;
+        --accent: #4fd4ff;
+        --danger: #ff8b8b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family: "Segoe UI", sans-serif;
+        background: radial-gradient(circle at 25% 0%, #0f3045, transparent 40%), var(--bg);
+        color: var(--text);
+      }
+
+      main {
+        width: min(980px, calc(100% - 28px));
+        margin: 18px auto;
+        display: grid;
+        gap: 14px;
+      }
+
+      .panel {
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: linear-gradient(150deg, rgba(79, 212, 255, 0.07), rgba(0, 0, 0, 0)), var(--panel);
+        padding: 14px;
+      }
+
+      .headline {
+        display: grid;
+        gap: 6px;
+      }
+
+      .headline h1 {
+        margin: 0;
+        font-size: clamp(1.1rem, 2.2vw, 1.45rem);
+      }
+
+      .headline p {
+        margin: 0;
+        color: var(--muted);
+      }
+
+      .toolbar {
+        display: grid;
+        gap: 10px;
+      }
+
+      @media (min-width: 840px) {
+        .toolbar {
+          grid-template-columns: minmax(0, 1fr) auto auto auto;
+          align-items: end;
+        }
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      input,
+      select,
+      textarea,
+      button {
+        font: inherit;
+      }
+
+      input,
+      select,
+      textarea {
+        width: 100%;
+        border: 1px solid #315167;
+        border-radius: 10px;
+        padding: 10px 11px;
+        color: var(--text);
+        background: var(--panel-2);
+      }
+
+      textarea {
+        min-height: 200px;
+        resize: vertical;
+      }
+
+      button {
+        border: 1px solid #315167;
+        border-radius: 10px;
+        padding: 10px 13px;
+        background: #163349;
+        color: var(--text);
+        cursor: pointer;
+        min-height: 42px;
+      }
+
+      button.primary {
+        border-color: #3da8cc;
+        background: linear-gradient(135deg, #2a9ec8, #2f6fcb);
+      }
+
+      button.danger {
+        border-color: #7d3a3a;
+        color: #ffd1d1;
+        background: #351b24;
+      }
+
+      .status {
+        min-height: 20px;
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .status.error {
+        color: var(--danger);
+      }
+
+      .split {
+        display: grid;
+        gap: 12px;
+      }
+
+      @media (min-width: 900px) {
+        .split {
+          grid-template-columns: 1.15fr 0.85fr;
+        }
+      }
+
+      .checklist {
+        display: grid;
+        gap: 8px;
+      }
+
+      @media (min-width: 640px) {
+        .checklist {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      .fn {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        align-items: center;
+        gap: 9px;
+        border: 1px solid #2a4458;
+        border-radius: 10px;
+        padding: 8px 10px;
+        background: #122434;
+      }
+
+      .fn code {
+        font-size: 0.92rem;
+      }
+
+      .small-toolbar {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 11px;
+      }
+
+      @media (min-width: 640px) {
+        .small-toolbar {
+          grid-template-columns: minmax(0, 1fr) auto;
+        }
+      }
+
+      .muted {
+        color: var(--muted);
+        font-size: 0.88rem;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="panel headline">
+        <h1>Template to Functions Ground Truth</h1>
+        <p>Single source map: each template name points to an array of enabled function IDs.</p>
+        <p><strong>Planning-only tool:</strong> canonical runtime registry remains <code>frontend/shared/template-catalog.json</code>.</p>
+      </section>
+
+      <section class="panel">
+        <div class="toolbar">
+          <label>
+            Template
+            <select id="template-select"></select>
+          </label>
+          <button id="new-template" type="button">New template</button>
+          <button id="remove-template" class="danger" type="button">Remove template</button>
+          <button id="download-json" class="primary" type="button">Download JSON</button>
+        </div>
+
+        <div style="margin-top:10px;">
+          <label>
+            Template name (key in JSON)
+            <input id="template-name" autocomplete="off" spellcheck="false">
+          </label>
+        </div>
+
+        <div id="status" class="status" aria-live="polite"></div>
+      </section>
+
+      <section class="split">
+        <section class="panel">
+          <div class="small-toolbar">
+            <label>
+              Add function ID
+              <input id="function-input" placeholder="Example: musicVoice" autocomplete="off" spellcheck="false">
+            </label>
+            <button id="add-function" type="button">Add function</button>
+          </div>
+          <div class="muted" style="margin-bottom:10px;">Check functions enabled under the selected template.</div>
+          <div id="function-list" class="checklist"></div>
+        </section>
+
+        <section class="panel">
+          <label>
+            Ground truth JSON preview
+            <textarea id="json-preview" readonly></textarea>
+          </label>
+          <div class="muted">Output shape: <code>{ "Music Community": ["musicVoice", "soundboard"] }</code></div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      // Planning helper only. Runtime catalog source-of-truth remains frontend/shared/template-catalog.json.
+      const state = {
+        functions: [],
+        templates: [],
+        selectedIndex: 0,
+      };
+
+      const el = {
+        templateSelect: document.getElementById("template-select"),
+        templateName: document.getElementById("template-name"),
+        newTemplate: document.getElementById("new-template"),
+        removeTemplate: document.getElementById("remove-template"),
+        downloadJson: document.getElementById("download-json"),
+        status: document.getElementById("status"),
+        functionInput: document.getElementById("function-input"),
+        addFunction: document.getElementById("add-function"),
+        functionList: document.getElementById("function-list"),
+        jsonPreview: document.getElementById("json-preview"),
+      };
+
+      function setStatus(text, isError = false) {
+        el.status.textContent = text;
+        el.status.classList.toggle("error", Boolean(isError));
+      }
+
+      function uniq(list) {
+        return [...new Set(list)];
+      }
+
+      function selectedTemplate() {
+        return state.templates[state.selectedIndex] || null;
+      }
+
+      function normalizeInput(text) {
+        return text.trim();
+      }
+
+      function toGroundTruthObject() {
+        const output = {};
+        for (const template of state.templates) {
+          output[template.name] = state.functions.filter(fn => template.enabled.includes(fn));
+        }
+        return output;
+      }
+
+      function validateNames() {
+        const names = state.templates.map(t => t.name.trim()).filter(Boolean);
+        return names.length === state.templates.length && uniq(names).length === names.length;
+      }
+
+      function renderTemplateOptions() {
+        el.templateSelect.innerHTML = "";
+        state.templates.forEach((template, index) => {
+          const option = document.createElement("option");
+          option.value = String(index);
+          option.textContent = template.name || `Template ${index + 1}`;
+          if (index === state.selectedIndex) {
+            option.selected = true;
+          }
+          el.templateSelect.append(option);
+        });
+      }
+
+      function renderTemplateName() {
+        const current = selectedTemplate();
+        el.templateName.value = current ? current.name : "";
+      }
+
+      function renderFunctions() {
+        el.functionList.innerHTML = "";
+        const current = selectedTemplate();
+        if (!current) {
+          return;
+        }
+        const enabledSet = new Set(current.enabled);
+        state.functions.forEach(functionId => {
+          const row = document.createElement("label");
+          row.className = "fn";
+
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.checked = enabledSet.has(functionId);
+          checkbox.addEventListener("change", () => {
+            if (checkbox.checked) {
+              current.enabled = uniq([...current.enabled, functionId]);
+            } else {
+              current.enabled = current.enabled.filter(value => value !== functionId);
+            }
+            renderPreview();
+          });
+
+          const code = document.createElement("code");
+          code.textContent = functionId;
+
+          row.append(checkbox, code);
+          el.functionList.append(row);
+        });
+      }
+
+      function renderPreview() {
+        el.jsonPreview.value = JSON.stringify(toGroundTruthObject(), null, 2);
+      }
+
+      function renderAll() {
+        renderTemplateOptions();
+        renderTemplateName();
+        renderFunctions();
+        renderPreview();
+      }
+
+      function createTemplate(name) {
+        state.templates.push({ name, enabled: [] });
+        state.selectedIndex = state.templates.length - 1;
+      }
+
+      function addFunctionId(rawInput) {
+        const functionId = normalizeInput(rawInput);
+        if (!functionId) {
+          return;
+        }
+        if (state.functions.includes(functionId)) {
+          return;
+        }
+        state.functions.push(functionId);
+        state.functions.sort((a, b) => a.localeCompare(b));
+      }
+
+      function extractStateFromCatalog(catalog) {
+        if (catalog && Array.isArray(catalog.modules) && Array.isArray(catalog.templates)) {
+          const functions = catalog.modules
+            .map(mod => (typeof mod === "string" ? mod : mod.id))
+            .filter(Boolean);
+          const templates = catalog.templates.map(template => ({
+            name: template.name || template.key || "Untitled Template",
+            enabled: Array.isArray(template.moduleIds) ? uniq(template.moduleIds) : [],
+          }));
+          return { functions: uniq(functions), templates };
+        }
+
+        if (catalog && typeof catalog === "object" && !Array.isArray(catalog)) {
+          const templates = Object.entries(catalog).map(([name, moduleIds]) => ({
+            name,
+            enabled: Array.isArray(moduleIds) ? uniq(moduleIds.filter(Boolean)) : [],
+          }));
+          const functions = uniq(templates.flatMap(template => template.enabled));
+          return { functions, templates };
+        }
+
+        return null;
+      }
+
+      async function bootstrap() {
+        try {
+          const response = await fetch("../frontend/shared/template-catalog.json", { cache: "no-store" });
+          if (!response.ok) {
+            throw new Error("Failed to load frontend/shared/template-catalog.json");
+          }
+          const raw = await response.json();
+          const parsed = extractStateFromCatalog(raw);
+          if (!parsed || parsed.templates.length === 0) {
+            throw new Error("Catalog format not recognized");
+          }
+          state.functions = parsed.functions;
+          state.templates = parsed.templates;
+          state.selectedIndex = 0;
+          renderAll();
+          setStatus("Loaded from frontend/shared/template-catalog.json");
+        } catch (error) {
+          state.functions = [];
+          state.templates = [{ name: "Music Community", enabled: ["musicVoice", "soundboard"] }];
+          state.selectedIndex = 0;
+          renderAll();
+          setStatus("Could not auto-load catalog. Using starter data. Open via local server for auto-load.", true);
+          console.error(error);
+        }
+      }
+
+      el.templateSelect.addEventListener("change", event => {
+        state.selectedIndex = Number(event.target.value);
+        renderTemplateName();
+        renderFunctions();
+        renderPreview();
+      });
+
+      el.templateName.addEventListener("input", () => {
+        const current = selectedTemplate();
+        if (!current) {
+          return;
+        }
+        current.name = normalizeInput(el.templateName.value);
+        renderTemplateOptions();
+        renderPreview();
+      });
+
+      el.newTemplate.addEventListener("click", () => {
+        const name = normalizeInput(prompt("Template name") || "");
+        if (!name) {
+          return;
+        }
+        createTemplate(name);
+        renderAll();
+      });
+
+      el.removeTemplate.addEventListener("click", () => {
+        if (state.templates.length <= 1) {
+          setStatus("Keep at least one template.", true);
+          return;
+        }
+        state.templates.splice(state.selectedIndex, 1);
+        state.selectedIndex = Math.max(0, state.selectedIndex - 1);
+        renderAll();
+      });
+
+      el.addFunction.addEventListener("click", () => {
+        const value = normalizeInput(el.functionInput.value);
+        if (!value) {
+          return;
+        }
+        addFunctionId(value);
+        el.functionInput.value = "";
+        renderFunctions();
+        renderPreview();
+      });
+
+      el.functionInput.addEventListener("keydown", event => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          el.addFunction.click();
+        }
+      });
+
+      el.downloadJson.addEventListener("click", () => {
+        if (!validateNames()) {
+          setStatus("Template names must be non-empty and unique.", true);
+          return;
+        }
+        // Exported shape is planning-oriented and must be converted before catalog replacement.
+        const output = JSON.stringify(toGroundTruthObject(), null, 2) + "\n";
+        const blob = new Blob([output], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "template-ground-truth.json";
+        a.click();
+        URL.revokeObjectURL(url);
+        setStatus("Downloaded template-ground-truth.json");
+      });
+
+      void bootstrap();
+    </script>
+  </body>
+</html>

@@ -1,4 +1,7 @@
-import templateCatalogData from "../../../shared/template-catalog.json";
+import templateCatalogData from "../../shared/template-catalog.json";
+
+// Batch 0A freeze: frontend/shared/template-catalog.json is the canonical runtime registry.
+// Planning artifacts (for example template-builder exports) must be converted before use here.
 
 interface TemplateCatalogModule {
   id: string;
@@ -9,7 +12,7 @@ interface TemplateCatalogTemplate {
   key: string;
   name: string;
   description: string;
-  enabledModules: Record<string, boolean>;
+  moduleIds: string[];
 }
 
 interface TemplateCatalogFile {
@@ -27,4 +30,8 @@ export const moduleEntityLabels = Object.fromEntries(
 
 export function getTemplateCatalogTemplate(templateKey: string) {
   return templateCatalogTemplates.find(template => template.key === templateKey) || null;
+}
+
+export function getEnabledModulesForTemplateKey(templateKey: string) {
+  return getTemplateCatalogTemplate(templateKey)?.moduleIds || [];
 }

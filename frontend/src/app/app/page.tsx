@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { EmptyState, SectionHeader } from "@/components/console/ConsolePrimitives";
 import { useConsole } from "@/components/console/ConsoleProvider";
-import { BotWorkspacePayload, ManageableGuildRecord, getBotWorkspaceHref, requestJson } from "@/lib/console";
+import { BotWorkspacePayload, ManageableGuildRecord, buildModulesHref, getBotWorkspaceHref, requestJson } from "@/lib/console";
 import { buildSetupHref, getAccessLabel } from "@/app/app/setup/setup-helpers";
 import styles from "@/components/console/console.module.scss";
 
@@ -213,12 +213,12 @@ export default function AppOverviewPage() {
                   <Link
                     href={
                       guild.primaryBotId
-                        ? buildSetupHref(guild.id)
+                        ? buildModulesHref(guild.id)
                         : `/app/setup?guild=${encodeURIComponent(guild.id)}`
                     }
                     className={guild.primaryBotId ? styles.serverActionPrimary : styles.serverActionSecondary}
                   >
-                    {guild.primaryBotId ? "Go" : sharedBot ? "Invite" : "Register"}
+                    {guild.primaryBotId ? "Modules" : sharedBot ? "Invite" : "Register"}
                   </Link>
                 </div>
               </article>
