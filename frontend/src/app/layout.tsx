@@ -3,8 +3,8 @@ import "@once-ui-system/core/css/tokens.css";
 import "@/resources/custom.css";
 
 import classNames from "classnames";
-import { Background, Column, Flex, opacity, SpacingToken } from "@once-ui-system/core";
-import { AppChrome, Providers } from "@/components";
+import { Background, Column, opacity, SpacingToken } from "@once-ui-system/core";
+import { Providers } from "@/components";
 import { baseURL, dataStyle, effects, fonts, person, social, style } from "@/resources";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata } from "next";
@@ -157,7 +157,7 @@ export default function RootLayout({
                 color: effects.lines.color,
               }}
             />
-            <AppChrome>{children}</AppChrome>
+            {children}
           </Column>
         </Providers>
         <SpeedInsights />

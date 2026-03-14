@@ -3,6 +3,7 @@
   "version": "2.2.0",
   "scripts": {
     "build": "next build",
+    "check:rewrite-contracts": "node scripts/validate-frontend-rewrite-contracts.mjs",
     "dev": "next dev",
     "export": "next export",
     "lint": "next lint",

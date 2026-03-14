@@ -1,37 +1,27 @@
-import templateCatalogData from "../../shared/template-catalog.json";
+// Batch FR rewrite note:
+// Keep this file as a compatibility facade while the new catalog home lives in src/lib/catalog.
+// This preserves legacy imports without creating a second source of truth.
 
-// Batch 0A freeze: frontend/shared/template-catalog.json is the canonical runtime registry.
-// Planning artifacts (for example template-builder exports) must be converted before use here.
+import {
+  canonicalModuleIds,
+  canonicalModuleLabelMap,
+  canonicalModules,
+  canonicalTemplateCatalog,
+  canonicalTemplates,
+  getCanonicalTemplate,
+  getCanonicalTemplateModules,
+} from "@/lib/catalog/template-catalog";
 
-interface TemplateCatalogModule {
-  id: string;
-  label: string;
-}
-
-interface TemplateCatalogTemplate {
-  key: string;
-  name: string;
-  description: string;
-  moduleIds: string[];
-}
-
-interface TemplateCatalogFile {
-  modules: TemplateCatalogModule[];
-  templates: TemplateCatalogTemplate[];
-}
-
-export const templateCatalog = templateCatalogData as TemplateCatalogFile;
-export const templateCatalogModules = templateCatalog.modules;
-export const templateCatalogTemplates = templateCatalog.templates;
-export const moduleDisplayOrder = templateCatalogModules.map(module => module.id);
-export const moduleEntityLabels = Object.fromEntries(
-  templateCatalogModules.map(module => [module.id, module.label]),
-) as Record<string, string>;
+export const templateCatalog = canonicalTemplateCatalog;
+export const templateCatalogModules = canonicalModules;
+export const templateCatalogTemplates = canonicalTemplates;
+export const moduleDisplayOrder = canonicalModuleIds;
+export const moduleEntityLabels = canonicalModuleLabelMap;
 
 export function getTemplateCatalogTemplate(templateKey: string) {
-  return templateCatalogTemplates.find(template => template.key === templateKey) || null;
+  return getCanonicalTemplate(templateKey);
 }
 
 export function getEnabledModulesForTemplateKey(templateKey: string) {
-  return getTemplateCatalogTemplate(templateKey)?.moduleIds || [];
+  return getCanonicalTemplateModules(templateKey);
 }

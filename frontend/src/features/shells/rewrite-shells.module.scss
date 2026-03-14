@@ -1,0 +1,150 @@
+.publicRoot,
+.consoleRoot,
+.workspaceRoot {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+}
+
+.publicRoot {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.publicHeader,
+.consoleHeader {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(10, 18, 31, 0.76);
+  backdrop-filter: blur(14px);
+}
+
+.publicHeaderInner,
+.consoleHeaderInner {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 0.875rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.brandBlock {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.brandName {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.15;
+  font-weight: 700;
+}
+
+.brandMeta {
+  margin: 0;
+  font-size: 0.78rem;
+  color: rgba(226, 232, 240, 0.82);
+}
+
+.navRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.navLink,
+.navLinkActive {
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.32);
+  padding: 0.45rem 0.9rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: none;
+  color: rgba(226, 232, 240, 0.92);
+  background: rgba(15, 23, 42, 0.58);
+}
+
+.navLinkActive {
+  border-color: rgba(56, 189, 248, 0.58);
+  background: rgba(8, 47, 73, 0.64);
+}
+
+.publicMain,
+.consoleMain {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 1.2rem auto 1.6rem;
+  display: grid;
+  gap: 1rem;
+}
+
+.publicFooter {
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(10, 18, 31, 0.76);
+}
+
+.publicFooterInner {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 0.85rem 0;
+  font-size: 0.8rem;
+  color: rgba(226, 232, 240, 0.72);
+}
+
+.workspaceRoot {
+  width: min(1200px, calc(100% - 2rem));
+  margin: 1.2rem auto 1.6rem;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.workspaceSidebar {
+  border: 1px solid rgba(148, 163, 184, 0.28);
+  border-radius: 16px;
+  padding: 1rem;
+  background: rgba(8, 18, 34, 0.72);
+  height: fit-content;
+  position: sticky;
+  top: 0.9rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.workspaceSidebarTitle {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.workspaceMeta {
+  margin: 0;
+  font-size: 0.76rem;
+  color: rgba(226, 232, 240, 0.72);
+}
+
+.workspaceNav {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.workspaceMain {
+  min-width: 0;
+}
+
+@media (max-width: 960px) {
+  .workspaceRoot {
+    grid-template-columns: 1fr;
+  }
+
+  .workspaceSidebar {
+    position: static;
+  }
+
+  .publicHeaderInner,
+  .consoleHeaderInner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
