@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { GlassCard, SectionHeader } from "@/components/console/ConsolePrimitives";
 import styles from "@/components/console/console.module.scss";
+import flowStyles from "@/features/flow/rewrite-flow.module.scss";
 
 export default function PricingPage() {
   return (
@@ -13,6 +14,20 @@ export default function PricingPage() {
       <div className={styles.inlineMeta}>
         <span className={styles.chip}>Main bot and focused bot separation</span>
         <span className={styles.chip}>No mixed module dump</span>
+      </div>
+      <div className={flowStyles.flowGrid}>
+        <div className={flowStyles.metricPanel}>
+          <p className={flowStyles.metricLabel}>Main Path</p>
+          <p className={flowStyles.metricValue}>Full Suite</p>
+        </div>
+        <div className={flowStyles.metricPanel}>
+          <p className={flowStyles.metricLabel}>Focused Path</p>
+          <p className={flowStyles.metricValue}>4 Slots</p>
+        </div>
+        <div className={flowStyles.metricPanel}>
+          <p className={flowStyles.metricLabel}>Activation</p>
+          <p className={flowStyles.metricValue}>Provisioned</p>
+        </div>
       </div>
       <div className={styles.cardActions}>
         <Link href="/add-bot" className={styles.buttonSecondary}>Add Bot</Link>

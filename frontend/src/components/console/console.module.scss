@@ -173,18 +173,21 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 1.55rem;
-  padding: 0 0.55rem;
+  min-height: 1.6rem;
+  padding: 0 0.6rem;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 0.68rem;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  font-size: 0.65rem;
   font-weight: 700;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .badgeSoft,
 .chip {
-  background: rgba(255, 255, 255, 0.05);
+  background:
+    linear-gradient(140deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02)),
+    rgba(15, 23, 42, 0.46);
   color: var(--text-muted);
 }
 
@@ -593,10 +596,24 @@ button.buttonDanger {
 }
 
 .pageSurface {
-  border-radius: 1.38rem;
-  padding: 1.35rem;
+  border-radius: 1.48rem;
+  padding: 1.45rem;
   display: grid;
-  gap: 1.1rem;
+  gap: 1.15rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.pageSurface::before {
+  content: "";
+  position: absolute;
+  inset: auto -26% -72% auto;
+  width: 360px;
+  height: 360px;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(var(--accent-rgb), 0.16), transparent 72%);
+  opacity: 0.86;
 }
 
 .stickySaveBar {
@@ -1017,10 +1034,32 @@ button.buttonDanger {
 }
 
 .card {
-  border-radius: 1.18rem;
-  padding: 1.1rem;
+  border-radius: 1.24rem;
+  padding: 1.12rem;
   display: grid;
   gap: 0.85rem;
+  position: relative;
+  overflow: hidden;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent 26%);
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(125, 211, 252, 0.32);
+  box-shadow:
+    0 22px 40px rgba(2, 8, 23, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.13);
 }
 
 .serverCard {
@@ -1713,12 +1752,14 @@ button.buttonDanger {
 .cardTitle {
   margin: 0;
   font-size: var(--type-md);
+  letter-spacing: -0.018em;
+  line-height: 1.18;
 }
 
 .cardText {
   color: var(--text-muted);
   font-size: var(--type-sm);
-  line-height: 1.65;
+  line-height: 1.62;
 }
 
 .cardActions {

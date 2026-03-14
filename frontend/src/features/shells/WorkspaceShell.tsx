@@ -67,8 +67,14 @@ export function WorkspaceShell({
         <p className={styles.workspaceSidebarTitle}>
           {scope === "main" ? "Main Bot Workspace" : `Focused Bot Workspace · Slot ${slot}`}
         </p>
+        <div className={styles.statusRow}>
+          <span className={styles.statusPill}>Sidebar Enabled</span>
+          <span className={`${styles.statusPill} ${styles.statusPillStrong}`}>Template Scoped</span>
+        </div>
         <p className={styles.workspaceMeta}>Server: {server?.name || serverId}</p>
         <p className={styles.workspaceMeta}>Template: {templateKey || "Not selected"}</p>
+        <p className={styles.workspaceMeta}>Module slots: {scopedModules.length}</p>
+        <hr className={styles.workspaceDivider} />
         <nav className={styles.workspaceNav} aria-label="Workspace navigation">
           <Link href={overviewHref} className={pathname === overviewPath ? styles.navLinkActive : styles.navLink}>
             Workspace Overview

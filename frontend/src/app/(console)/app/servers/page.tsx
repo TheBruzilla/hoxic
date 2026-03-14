@@ -4,6 +4,7 @@ import Link from "next/link";
 import { EmptyState, GlassCard, GlassPanel, SectionHeader } from "@/components/console/ConsolePrimitives";
 import { useConsole } from "@/components/console/ConsoleProvider";
 import styles from "@/components/console/console.module.scss";
+import flowStyles from "@/features/flow/rewrite-flow.module.scss";
 
 function getInitials(name: string) {
   return name
@@ -47,8 +48,10 @@ export default function ServerDirectoryPage() {
           title="Select a server"
           description="No sidebar is shown here by contract. Server-level flows are controlled from the overview hub."
         />
-        <div className={styles.inlineMeta}>
-          <span className={styles.chip}>{sortedServers.length} servers visible</span>
+        <div className={flowStyles.summaryRow}>
+          <span className={flowStyles.summaryChip}>{sortedServers.length} visible</span>
+          <span className={flowStyles.summaryChip}>No-sidebar flow shell</span>
+          <span className={flowStyles.summaryChip}>Overview-hub owned</span>
         </div>
       </GlassPanel>
       {sortedServers.length === 0 ? (
@@ -68,6 +71,10 @@ export default function ServerDirectoryPage() {
                   <h2 className={styles.cardTitle}>{server.name}</h2>
                 </div>
                 <span className={styles.chip}>{getInitials(server.name)}</span>
+              </div>
+              <div className={flowStyles.pillRow}>
+                <span className={styles.chip}>{server.provisioning.mode}</span>
+                <span className={styles.chip}>{server.botIds.length} bot links</span>
               </div>
               <p className={styles.cardText}>
                 {server.isOwner ? "Owner access" : "Administrator access"} · Provisioning mode: {server.provisioning.mode}

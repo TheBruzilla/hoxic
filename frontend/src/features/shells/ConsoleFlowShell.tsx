@@ -27,8 +27,13 @@ export function ConsoleFlowShell({
       <header className={styles.consoleHeader}>
         <div className={styles.consoleHeaderInner}>
           <div className={styles.brandBlock}>
+            <p className={styles.brandKicker}>Console Flow</p>
             <p className={styles.brandName}>HOXiq Console Flow</p>
             <p className={styles.brandMeta}>No-sidebar shell for directory, hub, and provisioning surfaces</p>
+            <div className={styles.statusRow}>
+              <span className={styles.statusPill}>No Sidebar Zone</span>
+              {serverId ? <span className={`${styles.statusPill} ${styles.statusPillStrong}`}>Server Context</span> : null}
+            </div>
           </div>
           <nav className={styles.navRow} aria-label="Console flow navigation">
             {linkRows.map(item => (

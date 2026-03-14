@@ -6,6 +6,7 @@ import { EmptyState, GlassCard, GlassPanel, SectionHeader } from "@/components/c
 import { useConsole } from "@/components/console/ConsoleProvider";
 import { findFocusedBotsForServer, findMainBotForServer, findServerRecord, formatServerAccessLabel, summarizeProvisioningMode } from "@/features/flow/server-flow";
 import styles from "@/components/console/console.module.scss";
+import flowStyles from "@/features/flow/rewrite-flow.module.scss";
 
 export default function ServerOverviewHubPage() {
   const params = useParams<{ serverId: string }>();
@@ -35,10 +36,10 @@ export default function ServerOverviewHubPage() {
           title={server.name}
           description="No sidebar appears in the hub. Main and focused bot flows are explicitly separated."
         />
-        <div className={styles.inlineMeta}>
-          <span className={styles.chip}>{formatServerAccessLabel(server)}</span>
-          <span className={styles.chip}>{summarizeProvisioningMode(server)}</span>
-          <span className={styles.chip}>{focusedBots.length}/4 focused slots linked</span>
+        <div className={flowStyles.summaryRow}>
+          <span className={flowStyles.summaryChip}>{formatServerAccessLabel(server)}</span>
+          <span className={flowStyles.summaryChip}>{summarizeProvisioningMode(server)}</span>
+          <span className={flowStyles.summaryChip}>{focusedBots.length}/4 focused linked</span>
         </div>
       </GlassPanel>
       <section className={styles.cardGrid}>
